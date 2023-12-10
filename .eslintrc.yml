@@ -1,0 +1,27 @@
+env:
+  browser: true
+  es6: true
+extends: eslint:recommended
+overrides: []
+parserOptions:
+  ecmaVersion: latest
+rules: {
+  no-mixed-spaces-and-tabs: [
+    "error",
+    "smart-tabs"
+  ],
+  no-unused-vars: [
+    "warn",
+    { "vars": "local" }
+  ],
+  no-var: "error",
+  no-template-curly-in-string: "error",
+  no-constant-binary-expression: "error",
+  operator-assignment: "warn",
+  prefer-const: "warn",
+  eqeqeq: "warn",
+  no-else-return: "warn",
+  no-lonely-if: "warn",
+  require-await: "warn",
+  no-unneeded-ternary: "warn",
+}

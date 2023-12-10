@@ -1,0 +1,21 @@
+{
+	"name": "Crazy Chrimble Catastrophy", "short_name": "Chrimble",
+	"description": "a christmas adventure game, and a heartfelt expression of the self, with about 40 minutes of content",
+	"categories": ["games", "christmas", "adventure"],
+	"start_url": "https://chrimble.commenter.cc",
+	"theme_color": "#000", "background_color": "#000",
+	"icons": [
+		{ "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+		{ "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+		{ "src": "icon-maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+		{ "src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+	],
+	"screenshots": [
+		{ "src": "logo.png", "sizes": "800x600", "type": "image/png", "form_factor": "wide",
+		  "label": "The full logo for Crazy Chrimble Catastrophy" },
+		{ "src": "screenshot-intro.jpg", "sizes": "800x600", "type": "image/jpeg", "form_factor": "wide",
+		  "label": "Cutscene screenshot of the player's room, and the dialogue \"Then, all of the sudden...\"" }
+	],
+	"display_override": ["standalone", "window-controls-overlay", "fullscreen"],
+	"display": "standalone", "orientation": "landscape"
+}

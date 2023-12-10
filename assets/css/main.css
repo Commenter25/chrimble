@@ -1,0 +1,702 @@
+/*! @license Crazy Chrimble Catastrophy | Copyright (c) 2023 Commenter25 | MIT License */
+/*! @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&dn=expat.txt MIT License */
+
+
+/* #region Web Fonts */
+@font-face {
+	font-family: 'Ubuntu Mono'; font-display: swap;
+	font-weight: normal bold;
+	src: url('../font/ubuntu_m.woff2') format("woff2-variations"), local('Ubuntu Mono');
+}
+@font-face {
+	font-family: 'Ubuntu'; font-display: swap;
+	font-weight: 300 800; font-stretch: 75% 100%; font-style: italic;
+	src: url('../font/ubuntu-i.woff2') format("woff2-variations"), local('Ubuntu Italic');
+}
+@font-face {
+	font-family: 'Ubuntu'; font-display: block;
+	font-weight: 100 800; font-stretch: 75% 100%;
+	src: url('../font/ubuntu.woff2') format("woff2-variations"), local('Ubuntu');
+}
+/*#endregion*/
+
+/* #region Body */
+html {
+	min-height: 100vh;
+	display: flex;
+	flex-direction: column;
+	background: #000;
+	font-family: Ubuntu, Cantarell, Tahoma, Arial, system-ui, sans-serif;
+	font-size: 16px;
+	font-weight: 475;
+	overscroll-behavior: none;
+}
+body {
+	width: 800px; height: 600px;
+	margin: auto;
+	border: none;
+	position: relative;
+	clip-path: border-box;
+	image-rendering: pixelated;
+	image-rendering: crisp-edges;
+}
+main {
+	width: 800px; height: 600px;
+	position: relative;
+	overflow: hidden;
+	background-repeat: no-repeat !important;
+}
+code, pre {
+	font-family: "Ubuntu Mono", "Source Code Pro", "Courier New", monospace;
+	font-size: 1rem;
+}
+a, a:visited { color: #55c2cc }
+/*#endregion*/
+
+/* sometimes this just fucking happens anyway idek */
+main, #overlay, #midload {
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+	cursor: default;
+}
+
+/* #region Buttons */
+/* stolen i mean modified from https://github.com/botoxparty/XP.css */
+button {
+	font-family: inherit;
+	font-size: 11px;
+	font-weight: 475;
+	box-sizing: border-box;
+	border: 1px solid #003c74;
+	background: linear-gradient(180deg,#fff,#ecebe5 86%,#d8d0c4);
+	color: black;
+	box-shadow: none;
+	border-radius: 5px;
+	min-width: 76px;
+	min-height: 24px;
+	padding: 0 12px;
+	margin: 10px;
+}
+button:not(:disabled):hover {
+	box-shadow: inset -1px 1px #fff0cf,inset 1px 2px #fdd889,inset -2px 2px #fbc761, inset -2px 2px #e5a01a, inset 2px -2px #e5a01a, inset 2px 2px #e5a01a, inset -2px -2px #e5a01a;
+}
+button:not(:disabled):active, button:not(:disabled).active, .toggled {
+	box-shadow: none;
+	background: linear-gradient(180deg,#cdcac3,#e3e3db 8%,#e5e5de 94%,#f2f2f1);
+}
+button:disabled {
+	color: #75747a
+}
+.toggled {
+	outline: 1px dotted #000;
+	outline-offset: -4px;
+	box-shadow: inset -1px 1px #cee7ff,inset 1px 2px #98b8ea,inset -2px 2px #bcd4f6,inset 1px -1px #89ade4,inset 2px -2px #89ade4;
+}
+button::-moz-focus-inner {
+	border: 0;
+}
+button:focus-visible {
+	outline: 2px auto #3584e4
+}
+/*#endregion*/
+
+
+/* #region Range Slider */
+input[type="range"]:focus-visible { outline: none }
+input[type="range"]:focus-visible::-moz-range-thumb {
+	outline: 2px auto #3584e4;
+}
+input[type="range"]:focus-visible::-webkit-slider-thumb {
+	outline: 2px auto #3584e4;
+	border-radius: 1em
+}
+
+/* i fucking remade the firefox slider just to change the focus from the box to the thumb */
+input[type="range"] {
+	background: transparent;
+}
+input[type="range"]::-moz-range-thumb {
+	border-radius: 100%;
+	background: #666;
+	border: 2px solid #fff;
+}
+input[type="range"]::-moz-range-thumb:active {
+	background: #3584e4;
+}
+input[type="range"]::-moz-range-track {
+	height: 6px;
+	border-radius: 1em;
+	background: #ccc;
+}
+input[type="range"]::-moz-range-progress {
+	height: 6px;
+	border-radius: 1em;
+	background: #3584e4;
+}
+/*#endregion*/
+
+
+#mapIcons { position: absolute }
+#mapIcons img {
+	position: absolute;
+	width: 50px; height: 50px;
+	object-fit: none;
+	transition: all 0.1s cubic-bezier(.68,-0.55,.27,1.55) 0s, object-position 0s;
+}
+.nosheet {
+	object-fit: fill !important;
+	object-position: 0 0 !important;
+}
+
+#controls {
+	display: flex;
+	position: absolute;
+	z-index: 999;
+}
+#controls button {
+	margin: 13px;
+	margin-right: 0
+}
+#optsBox {
+	background: #000;
+	color: #fff;
+	border: #fff solid 1px;
+	position: absolute;
+	top: 50px; left: 14px;
+	padding: 10px
+}
+#optsBox h2 {
+	margin: 0 0 7px;
+}
+#optsBox input {
+	width: 100%;
+	margin: 0;
+}
+
+#debugCanvas {
+	position: absolute;
+	top: 0;
+	pointer-events: none;
+}
+
+#speechImg {
+	filter: drop-shadow(0 0 5px black);
+	position: absolute;
+	image-rendering: auto;
+	bottom: 0px;
+	right: 0px;
+	z-index: 999;
+}
+
+/* #region The Box (and descendants) */
+#theBox {
+	box-sizing: border-box;
+	width: 800px; height: 200px;
+	padding: 40px 60px 36px;
+	display: flex;
+	background: url(../img/speechBox.webp);
+	position: absolute;
+	bottom: 0px;
+	filter: drop-shadow(0 0 5px black);
+	z-index: 999;
+	color: black;
+	image-rendering: auto;
+}
+
+/* #region Speech */
+#speechContainer {
+	position: relative;
+	width: 100%; height: 100%;
+}
+#speechName {
+	font-size: 25px;
+	font-weight: 900;
+	margin: 0; padding: 0;
+	line-height: 1;
+	white-space: pre-wrap;
+}
+#speechName:empty {
+	display: none;
+}
+#speechText {
+	margin: 10px 0 0 0;
+	font-size: 16px;
+	white-space: pre-wrap;
+}
+#next {
+	position: absolute;
+	bottom: -7px; right: -7px;
+	padding: 0 2px 2px;
+	animation: 1s cubic-bezier(1,-1,0.5,3) infinite arrowBounce;
+
+	/* reset */
+	background: none;
+	border: none;
+	margin: 0;
+	min-width: 0; min-height: 0;
+	font-size: 13px;
+}
+#next:hover {
+	box-shadow: none;
+}
+@keyframes arrowBounce {
+	50% { right: 10px }
+}
+/*#endregion*/
+
+/* #region Inventory */
+#invList {
+	position: relative;
+	width: 100%;
+	list-style: none;
+	margin: 0; padding: 0;
+	column-count: 3;
+	column-fill: auto;
+}
+#invList li {
+	margin-left: 2px;
+	padding-top: 2px;
+}
+#invList button {
+	/* reset */
+	background: none;
+	border: none;
+	margin: 0; padding: 5px 6px 5px 32px;
+	min-width: 0; min-height: 0;
+	font-size: 16px;
+	position: relative;
+	cursor: pointer;
+	--img: url("../img/50x50.webp");
+	--position: 0px 0px;
+	--size: 171px;
+}
+#invList button:disabled { cursor: default }
+#invList button:hover {
+	box-shadow: none;
+}
+#invList button::before {
+	content: '';
+	width: 19px; height: 19px;
+	background-image: var(--img);
+	background-repeat: no-repeat;
+	position: absolute;
+	top: 4px; left: 0; margin-left: 5px;
+	background-position: var(--position);
+	background-size: var(--size);
+}
+/*#endregion*/
+
+#choiceList {
+	width: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	margin: 0; padding: 0;
+	list-style: none;
+}
+
+/*#endregion*/
+
+
+
+.overlay {
+	width: 800px; height: 600px;
+	box-sizing: border-box;
+	position: absolute;
+	top: 0;
+	z-index: 9999;
+}
+
+#loading, #reswarning, #midload, #soundtest {
+	display: grid;
+	place-items: center;
+	align-content: center;
+	background: #000;
+	color: #fff;
+	text-align: center
+}
+
+noscript {
+	color: #f66;
+	position: absolute;
+	top: 200px;
+}
+
+#reswarning {
+	display: none;
+	border: 1px solid rgb(255, 255, 255);
+}
+@media (max-width: 799px), (max-height: 599px) {
+	#reswarning { display: grid }
+}
+
+#midload {
+	background: black no-repeat center
+}
+#midload p {
+	position: absolute;
+	top: 315px;
+	left: 300px;
+	text-align: left;
+	margin: 0;
+}
+
+#credits, .warning {
+	background: #000;
+	color: #fff;
+	border: #fff solid 1px;
+	width: 600px; height: auto;
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	text-align: center;
+	padding: 0 20px 17px;
+}
+
+.warning { background: #552525 }
+.warning p:first-child {
+	margin-top: 25px;
+}
+
+#credits h1, #credits h2 { font-weight: 900 }
+
+
+
+/* #region End Screen */
+#ending {
+	font-weight: 900
+}
+#endscreen {
+	background: #000;
+	color: #fff;
+	padding: 50px;
+	box-sizing: border-box;
+}
+#endscreen button{
+	margin:0
+}
+#chooseagain, #replay {
+	font-size: 16px;
+	min-height: 33px;
+}
+#endButtonOr {
+	display: inline;
+	margin: 0px 5px;
+}
+#endButtonOr.small {
+	position: relative;
+	top: 1px;
+	font-size: 13px;
+}
+#replay.small {
+	font-size: 10px;
+	min-height: 18px;
+	min-width: 0px;
+	padding: 0 5px;
+	position: relative;
+	top: -2px;
+}
+#endcreepy {
+	color: red; opacity: 0.1;
+	bottom: 0px;
+	position: absolute;
+}
+#time {display:inline}
+#maxtime {
+	margin-left: 5px; font-size: 15px
+}
+#creditsbutton {
+	bottom: 13px;
+	position: absolute;
+	right: 13px;
+}
+/*#endregion*/
+
+
+.toprightmessage {
+	position:absolute;
+	right:0; margin:0;
+	color:#fff;
+	text-align:right;
+	padding: 7px;
+}
+
+.attachbox {
+	background: #0007;
+	border-radius: 2px;
+	margin: 10px 0 10px 55px;
+	padding: 5px;
+	padding-right: 0;
+	min-height: 30px;
+	position: absolute;
+	transition: all 0.1s cubic-bezier(.68,-0.55,.27,1.55) 0s;
+	display: flex;
+	align-items: center;
+	box-sizing: border-box;
+	overflow-wrap: break-word;
+}
+
+.iconattach {
+	transition: all 0.1s cubic-bezier(.68,-0.55,.27,1.55) 0s;
+	margin: 0;
+	display: inline-block;
+	position: relative;
+	color: #fff;
+}
+
+.clickZone {
+	position: absolute;
+	cursor: pointer;
+	width: 50px;
+	height: 50px;
+	z-index: 99;
+
+	/* reset */
+	background: none;
+	border: none;
+	padding: 0; margin: 0;
+	min-width: 0; min-height: 0;
+}
+.clickZone:hover {
+	background: #0005;
+}
+
+
+/* #region In-Game Animations */
+@keyframes fadeout {
+	from {opacity: 100%}
+	to {opacity: 0%}
+}
+@keyframes fadein {
+	from {opacity: 0%}
+	to {opacity: 100%}
+}
+@keyframes fadeinfrom {
+	to {opacity: 100%}
+}
+@keyframes fadeinto {
+	from {opacity: 0%}
+}
+@keyframes slideright {
+	to {left:850px}
+}
+@keyframes slideleft {
+	to {left:-50px}
+}
+@keyframes slideintop {
+	from {top:-50px}
+}
+@keyframes lightdamageshake {
+	from {top:0; filter:brightness(100%)}
+	10% {top: -5px}
+	20% {top: 4px;filter:brightness(100%)}
+	30% {top: -3px;filter:brightness(100%)}
+	40% {top: 3px}
+	50% {top: -2px}
+	60% {top: 2px}
+	70% {top: -1px}
+	90% {top: 1px}
+	to {top:0}
+}
+@keyframes damageshake {
+	from {top:0; filter:brightness(100%)}
+	10% {top: -30px}
+	15% {filter:brightness(500%)}
+	20% {top: 20px;filter:brightness(100%)}
+	25% {filter:brightness(500%)}
+	30% {top: -25px;filter:brightness(100%)}
+	40% {top: 15px}
+	50% {top: -15px}
+	60% {top: 10px}
+	70% {top: -5px}
+	90% {top: 5px}
+	to {top:0}
+}
+@keyframes enemydie {
+	from {filter:grayscale(0%) brightness(100%)}
+	50% {filter:grayscale(100%) brightness(200%);opacity: 1}
+	to {opacity: 0}
+}
+@keyframes damage {
+	from {filter:brightness(100%)}
+	10% {filter:brightness(0%)}
+	25% {filter:brightness(200%)}
+	50% {filter:brightness(0%)}
+	75% {filter:brightness(200%)}
+	90% {filter:brightness(0%)}
+	to {filter:brightness(100%)}
+}
+@keyframes blinkaway {
+	from {opacity: 0}
+	20% {opacity: 1}
+	40% {opacity: 0}
+	60% {opacity: 1}
+	70% {opacity: 0}
+	80% {opacity: 1}
+	85% {opacity: 0}
+	90% {opacity: 1}
+	95% {opacity: 0}
+	to {opacity: 1}
+}
+@keyframes carspin {
+	from {transform: scale(1,1) rotate(0deg)}
+	50% {transform: scale(3,3) rotate(180deg)}
+	to {transform: scale(0,0) rotate(360deg)}
+}
+@keyframes carend {
+	from {
+		transform-origin: 72px 0;
+		top:500px; left:850px;
+		transform: rotate(0deg)
+	}
+	35% {
+		top:500px; left:400px;
+		transform: rotate(0deg)
+	}
+	40% {
+		transform: rotate(180deg)
+	}
+	45% {
+		transform-origin: 72px 0;
+		transform: rotate(360deg)
+	}
+	46% {
+		transform-origin: -73px 0;
+		transform: rotate(0deg)
+	}
+	65% {
+		transform: rotate(180deg)
+	}
+	74% {
+		transform: rotate(269deg)
+	}
+	79% {
+		transform-origin: 0;
+		top:500px; left:400px;
+		transform: rotate(270deg)
+	}
+	80% {
+		top: 450px; left: 350px;
+	}
+	99% {
+		top: 580px; left: 490px;
+	}
+	100% {
+		top:500px; left:400px;
+		transform: rotate(270deg)
+	}
+}
+@keyframes machineunveil {
+	from {filter: brightness(50) brightness(0.1)}
+	75% {filter: brightness(50) brightness(1) }
+	99% {filter: brightness(50) brightness(1) sepia(999) hue-rotate(99999deg) saturate(999)}
+	to {filter: brightness(1) brightness(1) sepia(0) hue-rotate(0) saturate(0)}
+}
+@keyframes grinchunveil {
+	from{filter: brightness(50) brightness(0);}
+	to{filter: brightness(1) brightness(1);}
+}
+@keyframes movebgdown150 {
+	from{background-position-y:0px;}
+	to{background-position-y: 150px;}
+}
+@keyframes movedown150 {
+	from{top:0px}
+	to{top:150px}
+}
+@keyframes movebgback {
+	to{background-position-y: 0;}
+}
+@keyframes moveback {
+	to{top:0}
+}
+@keyframes machineback {
+	to{top: 32px; left: 300px; filter:brightness(1)}
+}
+@keyframes chrisin {
+	from{left:-50px}
+	to{left:500px}
+}
+@keyframes chrisout {
+	from{left:500px}
+	to{left:850px}
+}
+@keyframes growin {
+	from {transform: scale(0, 0)}
+	to {transform: scale(1, 1)}
+}
+@keyframes flyoff {
+	from {transform: scale(1, 1)}
+	to {top: -50px; left: 850px; transform: scale(5, 5) rotate(9999deg)}
+}
+@keyframes blink {
+	from{opacity:0}
+	49%{opacity:0}
+	50%{opacity:1}
+	to{opacity:1}
+}
+@keyframes sideshake {
+	from {transform:translateX(0);}
+	10% {transform:translateX(-5px)}
+	20% {transform:translateX(5px)}
+	30% {transform:translateX(-4px)}
+	40% {transform:translateX(4px)}
+	50% {transform:translateX(-3px)}
+	60% {transform:translateX(2px)}
+	70% {transform:translateX(-2px)}
+	90% {transform:translateX(1px)}
+	to {transform:translateX(0)}
+}
+@keyframes comicin {
+	from {top:-200px}
+	25% {top: 50px}
+	50% {top: 0px}
+	75% {top: 50px}
+	85% {top: 25px}
+	to {top: 50px}
+}
+@keyframes turkeyin {
+	from {top:-320px}
+	25% {top: 25px}
+	50% {top: 0px}
+	75% {top: 25px}
+	85% {top: 15px}
+	to {top: 25px}
+}
+
+@keyframes cartakeoff {
+	from {transform: skew(0deg);}
+	48% {transform: skew(-50deg);}
+	50% {left: 650px; transform: rotate(0deg) skew(50deg)}
+	53% {transform: rotate(-90deg) skew(0deg);}
+	to {left:-600px; transform: rotate(-2880deg)}
+}
+@keyframes carlanding {
+	from {top:500px; left:1200px; transform: rotate(0deg)}
+	50% {top:500px; left:350px;}
+	to {top:-500px; left:-500px; transform: rotate(-2880deg)}
+}
+@keyframes theclock {
+	from {transform: translate(0, 0) scale(1)}
+}
+@keyframes up50 {
+	from {transform: scale(0.5)}
+	to {transform: scale(1)}
+}
+@keyframes down50 {
+	from {transform: scale(1)}
+	to {transform: scale(0.5)}
+}
+@keyframes thechoices {
+	from {opacity: 0; transform: translateY(50px)}
+	30% {opacity: 1; transform: translateY(0)}
+	70% {opacity: 1; transform: translateY(-5px)}
+	to {opacity: 0; transform: translateY(-10px)}
+}
+/*#endregion*/
+
+
+/*! @license-end */
