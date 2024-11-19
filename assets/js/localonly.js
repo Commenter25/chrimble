@@ -20,7 +20,7 @@ if (!fast && navigator.userAgent.includes("Chrome")) {
 		<p>it seems like you're using google chrome, or something based on its engine, and playing the game from a local install. this is what some people in the industry might call a "Bad Idea".
 		unfortunately, despite HTML5 existing for over a decade, google has still implemented it incorrectly. therefore, if you play from here, you will unfortunately have slight audio issues and stutters.</p>
 		<p>i won't stop you from having a subpar experience, but it's highly recommended to install <a href="https://firefox.com">firefox</a> or a derivative for the best experience.</p>
-		<button onclick="this.parentElement.style.display = 'none'">close</button>
+		<button onclick="this.parentElement.remove()">close</button>
 	</div>
 	`)
 }

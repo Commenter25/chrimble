@@ -1,11 +1,11 @@
-/*! @license Crazy Chrimble Catastrophy - Initialization - v2.0.5 | Copyright (c) 2023 Commenter25 | MIT License */
+/*! @license Crazy Chrimble Catastrophy - Initialization - v2.1.0 | Copyright (c) 2023 Commenter25 | MIT License */
 /* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&dn=expat.txt MIT License */
 /* eslint-disable no-undef */ "use strict"
 
 const params = new URLSearchParams(window.location.search)
 const timer = ms => new Promise(res => setTimeout(res, ms)) // await this in milliseconds
 const fast = params.has('fast');
-let debug = params.has('debug'), mainLoaded, music; // eslint-disable-line
+let debug = params.has('debug'), assets = {}, mainLoaded, music; // eslint-disable-line
 
 const favicon = document.querySelector('link[rel="icon"]');
 function errormode() {
@@ -46,7 +46,7 @@ YAPLtag.insertAdjacentHTML("beforeend", `
 
 function script(i) {
 	const tag = document.createElement('script');
-	tag.src = `assets/js/${i}.js?v205`; tag.async = true;
+	tag.src = `assets/js/${i}.js?v210`; tag.async = true;
 	document.head.appendChild(tag);
 }
 script("main")
@@ -57,12 +57,12 @@ if (window.location.protocol !== "file:") {
 }
 
 const folder = "assets"
-let assets = [
+assets.base = [
 "img/speechBox.webp",
 "img/mom.webp"
 ]
 
-const introAssets = [
+assets.intro = [
 "mus/ecards.ogg",
 "img/intro/bart.webp",
 "img/intro/chair.webp",
@@ -79,7 +79,7 @@ const introAssets = [
 "vid/intro.webm"
 ]
 
-const mapAssets = [
+assets.map = [
 "img/map1.png",
 "img/50x50.webp",
 "mus/fuzz-intro.ogg",
@@ -102,13 +102,10 @@ const mapAssets = [
 ]
 
 const intro = !fast && !params.has('nointro') && !params.has('novid')
-if (intro) {
-	assets = assets.concat(introAssets)
-} else {
-	assets = assets.concat(mapAssets)
-}
+let initial = intro ? assets.intro : assets.map;
+initial = assets.base.concat(initial)
 
-if (localStorage.getItem("summoned")) assets = [
+if (localStorage.getItem("summoned")) initial = [
 "img/50x50.webp",
 "mus/creepygarf.mp3",
 "img/room-empty.webp",
@@ -118,7 +115,7 @@ if (localStorage.getItem("summoned")) assets = [
 ]
 
 function incr() {
-	loadbutton.textContent = `Loading... ${YAPLloaded}/${assets.length}`
+	loadbutton.textContent = `Loading... ${YAPLloaded}/${initial.length}`
 }
 
 function fail() {
@@ -141,11 +138,11 @@ async function done() {
 	loadbutton.focus({focusVisible: true});
 
 	if (intro) loadbutton.addEventListener("click", ()=>{
-		YAPLload(folder, mapAssets)
-		preloadCount = mapAssets.length
+		YAPLload(folder, assets.map)
+		preloadCount = assets.map.length
 	}, {once: true})
 }
 
-YAPLload(folder, assets, done, incr, fail, fail)
+YAPLload(folder, initial, done, incr, fail, fail)
 
 }, {once: true})/* @license-end */

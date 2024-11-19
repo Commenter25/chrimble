@@ -1,4 +1,4 @@
-/*! @license Crazy Chrimble Catastrophy v2.0.5 | Copyright (c) 2023 Commenter25 | MIT License */
+/*! @license Crazy Chrimble Catastrophy v2.1.0 | Copyright (c) 2023 Commenter25 | MIT License */
 /* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&dn=expat.txt MIT License */
 /* global timer, fast, loadbutton, errormode, favicon, YAPLload, YAPLloaded, YAPLfailed, debug:writeable, mainLoaded:writeable, music:writeable */
 "use strict";
@@ -247,17 +247,28 @@ function makeImg(src, style = false, appendto = main, className = false) {
 	return tag;
 }
 
+async function makeGif(img, style = false, appendto = false) {
+	// jankily desperately trying to ensure it replays
+	// please for the love of god why do gifs not fucking work
+	let tag = makeImg(img, style, appendto);
+	tag.src = ""
+	tag.src = `assets/img/${img}?${Math.random()}`
+	return tag
+}
+
 async function ebOverlay(img, time) {
+	const tag = await makeGif(img, false, false);
+
 	overlay.style.display = "";
 	overlay.style.opacity = "50%";
-	const trans = makeImg(img, false, overlay);
+	overlay.appendChild(tag)
 	await timer(time);
 	await animate(overlay, 0.3, "linear fadeinfrom");
 	overlay.style.opacity = "100%"
 	await timer(500);
 	overlay.style.display = "none";
 	overlay.style.opacity = "";
-	overlay.removeChild(trans);
+	overlay.removeChild(tag);
 }
 //#endregion
 
@@ -3710,6 +3721,7 @@ async function endChoiceNow(remember) {
 
 let endingChoice = false;
 const seenEndings = JSON.parse(localStorage.getItem("seenEndings")) || [];
+const allEndingsSeen = (seenEndings.length === 12)
 function endChoice(item) {
 	boxClose(); moveStop();
 
@@ -3809,6 +3821,7 @@ async function endingWorms() {
 		"THE POWER OF LOVEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE");
 	musPause();
 	await timer(200);
+	await makeGif("grinch-icon-dissolve.gif")
 	grinchEnt.setImg("grinch-icon-dissolve.gif", false);
 	await playSfx("noo.ogg");
 	endGame("love ending", "careless_whispers.ogg", "merry romance");
@@ -3908,7 +3921,7 @@ async function endingDestruct() {
 	playSfx("payne.ogg");
 	overlay.style.display = "";
 	overlay.style.opacity = "";
-	const objection = makeImg("objection.webp", "", overlay);
+	const objection = await makeGif("objection.webp", "", overlay);
 	await timer(1500);
 	overlay.style.display = "none";
 	overlay.removeChild(objection);
@@ -3952,7 +3965,7 @@ async function endingDestruct() {
 	playSfx("explode.ogg");
 	overlay.style.display = "";
 	overlay.style.opacity = "";
-	const explode = makeImg("explode.webp", "", overlay);
+	const explode = await makeGif("explode.webp", "", overlay);
 	await timer(500);
 	endGame("doof ending", false, "almost christmas means it wasn't christmas");
 
@@ -4412,13 +4425,18 @@ function endingBadCutsceneFast() {endingBadCutscene("yes");}
 let allInvEndingsSeen = false;
 if (seenEndings.includes("microSD Card")) creditsButton.style.display = ""
 
+const failedsummon = localStorage.getItem("failedsummon")
 async function endGame(ending, music = false, text = "merry ceiling", creepy = false) {
 	endTitle.textContent = ending;
 	endKarma.textContent = `karma: ${karmaScore}`;
 	endIntel.textContent = `intelligence: ${intelligence}`;
+
+	if (allEndingsSeen) endCreepy.opacity = 1
 	if (!creepy) {
 		endText.textContent = text;
-		endCreepy.textContent = "";
+		creepy = (allEndingsSeen) ? "the bottle." : false
+		creepy = (failedsummon) ? "it's time." : false
+		endCreepy.textContent = creepy || "";
 	} else {
 		endText.textContent = "";
 		endCreepy.textContent = text
@@ -4471,13 +4489,18 @@ async function endingSpeedrun() {
 	orangeCarEnt.sprite.style.display = "none";
 	orangeCarEnt.sprite.style.transition = "";
 
+	async function makeExplosion() { // framerate capabilities
+		await makeGif("explode.gif", `position:absolute; top: 480px; left: 340px;`, overlay)
+	}
+
 	await timer(800)
 	grinchSprite.style.transform = "";
 	await timer(500)
 	orangeCarEnt.sprite.style.display = "";
 	animate(orangeCarEnt.sprite, 3, "linear carlanding");
 	await timer(1500)
-	makeImg("explode.gif", `position:absolute; top: 480px; left: 340px;`)
+	overlay.style.display = "";
+	await makeExplosion()
 	playSfx("deltarune-explosion.mp3");
 	await timer(200)
 	playerImg.style.display = "";
@@ -4489,8 +4512,59 @@ async function endingSpeedrun() {
 
 	await timer(500);
 
-	if (angryDead) { endingSpeedrunGenocide(); return; }
+	if (angryDead) {
+		if (allEndingsSeen) {
+			endingSpeedrunGenocide(); return;
+		}
 
+
+
+		main.style.animation = "0.2s cubic-bezier(.68,-0.55,.27,1.55) damageshake infinite";
+		main.style.setProperty("filter", "brightness(0.5)", "important")
+		mapIcons.style.animation = "0.2s cubic-bezier(.68,-0.55,.27,1.55) damageshake infinite 0.1s";
+
+		const explosions = [];
+		async function explode() {
+			sfx = new Audio(`assets/snd/deltarune-explosion.mp3`);
+			sfx.volume = 1 * userVol;
+			sfx.play();
+			explosions.push(sfx);
+			await makeExplosion();
+			await timer(200);
+		}
+
+		for (let i = 0; i < 10; i++) {
+			await explode();
+		}
+
+		sfx.pause(); explosions.forEach(el => {el.pause(); el.remove()});
+		music.pause();
+		main.style.filter = ""
+		main.style.animation = ""
+
+		creepyMode();
+
+		await timer(3000);
+
+		if (!failedsummon) {
+			await speech(
+				"we're close.",
+				"but the world does not appear ready to give up.",
+				"you must weaken its guard.")
+		} else {
+			await speech(
+				"uh.",
+				"i felt like i was, pretty direct?",
+				"i can't do anything yet.",
+				"you gotta like, help me out on this one.")
+		}
+
+		await speechBlank("get every ending, and we shall try again.", 1)
+		localStorage.setItem("failedsummon", true)
+		return
+	}
+
+	overlay.style.display = "none";
 	await grinchEnt.talk(
 		"What the fuck you're already here???",
 		`How did you get here in like ${speedrunTime} seconds???`)
@@ -4566,9 +4640,13 @@ function endGameSpeedrun(ending, music = false, text = "merry ceiling") {
 let garfImg;
 async function endingSpeedrunGenocide() {
 	/*
-	it's almost certain if you're reading this, you haven't gotten this ending.
+	it's fairly likely if you're reading this, you haven't gotten this ending.
 	do me a favor, and do the speedrun ending while killing the angry man, then come back
 	*/
+
+
+
+
 
 
 	await speechBlankChar(grinchEnt, "What the fuck you're already", 50);
@@ -4594,16 +4672,11 @@ async function endingSpeedrunGenocide() {
 	await speechBlankChar(grinchEnt, "", 7000);
 	endGameGenocide()
 }
-async function endGameGenocide() {
-	loading.style.display = "none"
-	main.style.display = ""
-	if (!timeSinceImportance) timeSinceImportance = new Date().getTime();
-	endGameSpeedrun("true genocide ending", "creepygarf.mp3", "");
-	replayButton.style.display = "none"
-	creditsButton.style.display = "none"
-
+function creepyMode() {
 	speechSet();
 	boxClose();
+	moveStop();
+
 	main.style.background = "none"
 
 	overlay.remove();
@@ -4625,6 +4698,17 @@ async function endGameGenocide() {
 	theBox.style.filter = "none"
 	next.style.color = "#fff"
 	next.style.animation = "none"
+	speechText.style.textAlign = "center"
+}
+async function endGameGenocide() {
+	loading.style.display = "none"
+	main.style.display = ""
+	if (!timeSinceImportance) timeSinceImportance = new Date().getTime();
+	endGameSpeedrun("true genocide ending", "creepygarf.mp3", "");
+	replayButton.style.display = "none"
+	creditsButton.style.display = "none"
+
+	creepyMode();
 
 	await timer(3000);
 	garfImg = makeImg(fiftyby[0],
@@ -4632,7 +4716,6 @@ async function endGameGenocide() {
 	await animate(endScreen, 10, "fadeout");
 	endScreen.remove();
 
-	speechText.style.textAlign = "center"
 	await speech(
 		"excellent work.",
 		"you got rid of every single one of them.",
