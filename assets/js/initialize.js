@@ -1,4 +1,4 @@
-/*! @license Crazy Chrimble Catastrophy - Initialization - v2.1.0 | Copyright (c) 2023 Commenter25 | MIT License */
+/*! @license Crazy Chrimble Catastrophy - Initialization - v2.2.0 | Copyright (c) 2023 Commenter25 | MIT License */
 /* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&dn=expat.txt MIT License */
 /* eslint-disable no-undef */ "use strict"
 
@@ -38,6 +38,10 @@ if (!fast && localStorage.getItem("seenEndings")) {
 	<button onclick="replay()">Switch to Fast Mode</button>`)
 }
 
+function localStorageBool(item) {
+	return (localStorage.getItem(item) === "true")
+}
+
 // preload fonts
 YAPLtag.insertAdjacentHTML("beforeend", `
 <span style="font-family: Ubuntu; font-style: italic">c</span>
@@ -46,7 +50,7 @@ YAPLtag.insertAdjacentHTML("beforeend", `
 
 function script(i) {
 	const tag = document.createElement('script');
-	tag.src = `assets/js/${i}.js?v210`; tag.async = true;
+	tag.src = `assets/js/${i}.js?v220`; tag.async = true;
 	document.head.appendChild(tag);
 }
 script("main")
@@ -105,7 +109,7 @@ const intro = !fast && !params.has('nointro') && !params.has('novid')
 let initial = intro ? assets.intro : assets.map;
 initial = assets.base.concat(initial)
 
-if (localStorage.getItem("summoned")) initial = [
+if (localStorageBool("summoned")) initial = [
 "img/50x50.webp",
 "mus/creepygarf.mp3",
 "img/room-empty.webp",

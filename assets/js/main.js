@@ -1,4 +1,4 @@
-/*! @license Crazy Chrimble Catastrophy v2.1.0 | Copyright (c) 2023 Commenter25 | MIT License */
+/*! @license Crazy Chrimble Catastrophy v2.2.0 | Copyright (c) 2023 Commenter25 | MIT License */
 /* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&dn=expat.txt MIT License */
 /* global timer, fast, loadbutton, errormode, favicon, YAPLload, YAPLloaded, YAPLfailed, debug:writeable, mainLoaded:writeable, music:writeable */
 "use strict";
@@ -3721,7 +3721,7 @@ async function endChoiceNow(remember) {
 
 let endingChoice = false;
 const seenEndings = JSON.parse(localStorage.getItem("seenEndings")) || [];
-const allEndingsSeen = (seenEndings.length === 12)
+const allEndingsSeen = (seenEndings.length >= 12)
 function endChoice(item) {
 	boxClose(); moveStop();
 
@@ -3870,8 +3870,10 @@ async function wormGiven() {
 	}
 	await timer(1500);
 	endGame("worm ending", "bookworm.ogg", "merry wormmas");
-	seenEndings.push("Worm")
-	localStorage.setItem("seenEndings", JSON.stringify(seenEndings))
+	if (!seenEndings.includes("Worm")) {
+		seenEndings.push("Worm")
+		localStorage.setItem("seenEndings", JSON.stringify(seenEndings))
+	}
 }
 async function wormRefused() {
 	endingChoice = "worm";
@@ -4248,8 +4250,10 @@ async function scissorDie() {
 	main.style.display = "none";
 	endGame("bald ending", "baldeend.ogg", "merry mathematics");
 	await animate(endScreen, 1, `linear fadein`);
-	seenEndings.push("Safety Scissors")
-	localStorage.setItem("seenEndings", JSON.stringify(seenEndings))
+	if (!seenEndings.includes("Safety Scissors")) {
+		seenEndings.push("Safety Scissors")
+		localStorage.setItem("seenEndings", JSON.stringify(seenEndings))
+	}
 }
 async function scissorBad(action = false) {
 	playSfx("eb/enemyturn.ogg");
@@ -4425,22 +4429,25 @@ function endingBadCutsceneFast() {endingBadCutscene("yes");}
 let allInvEndingsSeen = false;
 if (seenEndings.includes("microSD Card")) creditsButton.style.display = ""
 
-const failedsummon = localStorage.getItem("failedsummon")
+const failedsummon = localStorageBool("failedsummon")
 async function endGame(ending, music = false, text = "merry ceiling", creepy = false) {
 	endTitle.textContent = ending;
 	endKarma.textContent = `karma: ${karmaScore}`;
 	endIntel.textContent = `intelligence: ${intelligence}`;
 
-	if (allEndingsSeen) endCreepy.opacity = 1
+	if (allEndingsSeen) endCreepy.style.opacity = 1
 	if (!creepy) {
 		endText.textContent = text;
-		creepy = (allEndingsSeen) ? "the bottle." : false
-		creepy = (failedsummon) ? "it's time." : false
+		if (allEndingsSeen) {
+			creepy = (hasItem("Glass of Water")) ? "empty the bottle." : "the bottle."
+		}
+		creepy = (failedsummon) ? "it's time." : creepy
 		endCreepy.textContent = creepy || "";
 	} else {
 		endText.textContent = "";
 		endCreepy.textContent = text
 	}
+	if (untransformed) endCreepy.textContent = "";
 
 	if (fast) {
 		replayButton.textContent = "replay again";
@@ -4511,6 +4518,7 @@ async function endingSpeedrun() {
 	orangeCarEnt.hide();
 
 	await timer(500);
+	overlay.style.display = "none";
 
 	if (angryDead) {
 		if (allEndingsSeen) {
@@ -4564,7 +4572,6 @@ async function endingSpeedrun() {
 		return
 	}
 
-	overlay.style.display = "none";
 	await grinchEnt.talk(
 		"What the fuck you're already here???",
 		`How did you get here in like ${speedrunTime} seconds???`)
@@ -4610,6 +4617,7 @@ async function endingSpeedrun() {
 
 	await timer(2000)
 
+	if (allEndingsSeen) endCreepy.opacity = 1
 	endCreepy.textContent = "the yellow one too."
 
 	endGameSpeedrun("speedrun ending", "gasgasgas.ogg", "merry acceleration");
@@ -4716,6 +4724,10 @@ async function endGameGenocide() {
 	await animate(endScreen, 10, "fadeout");
 	endScreen.remove();
 
+	if (untransformed) {
+		await speech("hm.", "this feels familiar.", "well, whatever.")
+	}
+
 	await speech(
 		"excellent work.",
 		"you got rid of every single one of them.",
@@ -4812,7 +4824,7 @@ async function endGameGenocide() {
 
 		const dee = document.createElement("p")
 		dee.textContent = "dee";
-		dee.style = choicetextstyle + "left: 150px;"
+		dee.style = choicetextstyle + "left: 150px; color: #fff"
 		main.appendChild(dee)
 		await animate(dee, 1, "linear thechoices")
 		dee.remove();
@@ -4920,7 +4932,16 @@ async function genocideFinale() {
 	music.loop = false;
 }
 
-if (localStorage.getItem("transformed")) {
+const untransformed = localStorageBool("untransformed")
+function untransform() {
+	localStorage.setItem('failedsummon', false);
+	localStorage.setItem('summoned', false);
+	localStorage.setItem('transformed', false);
+	localStorage.setItem('untransformed', true);
+	window.location.reload();
+}
+
+if (localStorageBool("transformed")) {
 	main.remove();
 	overlay.remove();
 	midload.remove();
@@ -4931,7 +4952,13 @@ if (localStorage.getItem("transformed")) {
 
 	makeImg(fiftyby[0],
 		"position: absolute; top: 50%; left: 50%; width: 50px; height: 50px; object-fit: none; object-position: -400px 0; transform: translate(-50%, -50%);", document.body)
-} else if (localStorage.getItem("summoned")) loadbutton.onclick = endGameGenocide;
+
+	document.body.insertAdjacentHTML("beforeend",
+		`<button style="position: absolute; top: 60%; left: 48.8%; transform: translate(-50%, -50%);"
+		 onclick="untransform()">untransform</button>`
+	)
+
+} else if (localStorageBool("summoned")) loadbutton.onclick = endGameGenocide;
 
 //#endregion
 
