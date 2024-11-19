@@ -1,4 +1,4 @@
-/*! @license Crazy Chrimble Catastrophy v2.2.0 | Copyright (c) 2023 Commenter25 | MIT License */
+/*! @license Crazy Chrimble Catastrophy v2.2.1 | Copyright (c) 2023 Commenter25 | MIT License */
 /* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&dn=expat.txt MIT License */
 /* global timer, fast, loadbutton, errormode, favicon, YAPLload, YAPLloaded, YAPLfailed, debug:writeable, mainLoaded:writeable, music:writeable */
 "use strict";
