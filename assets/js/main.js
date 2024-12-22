@@ -1,4 +1,4 @@
-/*! @license Crazy Chrimble Catastrophy v2.2.1 | Copyright (c) 2023 Commenter25 | MIT License */
+/*! @license Crazy Chrimble Catastrophy v2.3.0 | Copyright (c) 2023 Commenter25 | MIT License */
 /* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&dn=expat.txt MIT License */
 /* global timer, fast, loadbutton, errormode, favicon, YAPLload, YAPLloaded, YAPLfailed, debug:writeable, mainLoaded:writeable, music:writeable */
 "use strict";
@@ -46,7 +46,10 @@ loading.insertAdjacentHTML("beforebegin", `
 
 <div id="overlay" class="overlay" style="display:none"></div>
 
-<div id="midload" class="overlay" style="display:none"><p></p></div>
+<div id="midload" class="overlay" style="display:none">
+	<p id="midloadText"></p>
+	<button id="midloadButton">Continue</button>
+</div>
 
 <div id="endscreen" class="overlay" style="display:none">
 	<h1 id="ending"></h1>
@@ -92,7 +95,8 @@ const main = document.getElementById("container");
 const overlay = document.getElementById("overlay");
 
 const midload = document.getElementById("midload");
-	const midloadText = midload.firstChild;
+	const midloadText = document.getElementById("midloadText");
+	const midloadButton = document.getElementById("midloadButton");
 
 const endScreen = document.getElementById("endscreen");
 	const endTitle = document.getElementById("ending");
@@ -309,12 +313,20 @@ async function loadingFavicon() {
 	favicon.setAttribute('href', 'assets/ico/favicon.svg')
 }
 
+// not worth a http req, ppl needing this need those minimized
+const loadBG = "url(data:image/webp;base64,UklGRuQCAABXRUJQVlA4WAoAAAASAAAAxgAANAAAQU5JTQYAAAD/////AABBTk1GygEAAAAAAAAAAMYAADQAAPQBAABWUDhMsQEAAC/GAA0QXzD/8z//SgMAacNscPSdSSYD8I5EouOCMOBAPHzIrW3LkZVrFPKaZEEK8ovyHioOUiCEnwQLVz7jIW949aqqu1cXyoro/wS8xwrXEL8nzv9eHizh0RKO/Mf0Qed0UWutpaMP4tjFWSjt3CDGXDyHCwGAK3EDVAZC0gGkA4gNgo0ABAd0G8E5lzjkx0A+4GLPAGgqJKmMiOJ+bzvRGADM/Oi8vpWpAMEBN1zYbm4dJ+CJ95wAXJlnTgAu9kRA+7EDAxyJmAXaTmAErp4BiIfHEaAEsiMw8+TNcX4A1hETJj8nIoF3hEa7qXRiIEKlsQyts4NcZSj2QmgLBOdgmTrBxDYCZ1w253CWzazj1jg38im4BpQZ4JxyzkBHqkCo9AqACxFwFedNojFnL3gUlwTgh5iFWisAQqL28UTcx9USrXRRXAAaIhURjU8EJiAR0FaSrNaC7oUkYj68eZQIqQZgDVySbaAuMSwJW6rlkHMbzuGi1lpx1FprwfC7+yNK0g3OU7GC4ApGnSuArcCXEFihlmB/Cs4VBFbIFYStQDj/Kjs9ScS5e0gizk4VWwMAQU5NRkoAAAAAAAAAAADGAAA0AAD0AQAAVlA4TDEAAAAvxgANEB8w//M//wKBZLTMVg90GKAgktQGHZjAAtLQ31syE9H/CYC/KaM+oQgY9S19AEFOTUZCAAAAAAAAAAAAxgAANAAA9AEAAFZQOEwqAAAAL8YADRAfMP/zP/8CgWS0zFYPdBhAOIFh3VvSgvKSiuj/BOhsEuAKBGwkQU5NRkoAAAAAAAAAAADGAAA0AAD0AQAAVlA4TDEAAAAvxgANEB8w//M//wKBZLTMVg90GKAgktQGHZjAAtLQ31syE9H/CYAvLaM+oQgY9W1vAA==)"
+
 async function loadingScreen() {
 	if (YAPLloaded >= preloadCount && !preloadWaiting) return;
 
+	const loadStarted = new Date().getTime()
+
+	midloadButton.style.display = "none"
+	midload.style.backgroundImage = loadBG
 	midload.style.display = ""
 	loadingFavicon()
 	musPause();
+
 	while ((YAPLloaded < preloadCount || preloadWaiting) && !YAPLfailed) {
 		midloadText.textContent = `${YAPLloaded}/${preloadCount}`
 		await timer(200)
@@ -328,18 +340,18 @@ async function loadingScreen() {
 		while (YAPLfailed) await timer(99999999)
 	}
 
-	// don't do anything until currently active window
-	if (document.hidden) await new Promise( (res)=> {
-		document.addEventListener("visibilitychange", () => {
-			if (!document.hidden) res();
-		}, {once: true});
+	// make sure the user is here
+	if (document.hidden || (new Date().getTime() - loadStarted) > 12000) await new Promise( (res)=> {
+		midload.style.backgroundImage = ""
+		midloadText.textContent = ""
+		midloadButton.onclick = res
+		midloadButton.style.display = ""
 	});
 
 	musResume()
 	midload.style.display = "none"
 }
-// not worth a http req, ppl needing this need those minimized
-midload.style.backgroundImage = "url(data:image/webp;base64,UklGRuQCAABXRUJQVlA4WAoAAAASAAAAxgAANAAAQU5JTQYAAAD/////AABBTk1GygEAAAAAAAAAAMYAADQAAPQBAABWUDhMsQEAAC/GAA0QXzD/8z//SgMAacNscPSdSSYD8I5EouOCMOBAPHzIrW3LkZVrFPKaZEEK8ovyHioOUiCEnwQLVz7jIW949aqqu1cXyoro/wS8xwrXEL8nzv9eHizh0RKO/Mf0Qed0UWutpaMP4tjFWSjt3CDGXDyHCwGAK3EDVAZC0gGkA4gNgo0ABAd0G8E5lzjkx0A+4GLPAGgqJKmMiOJ+bzvRGADM/Oi8vpWpAMEBN1zYbm4dJ+CJ95wAXJlnTgAu9kRA+7EDAxyJmAXaTmAErp4BiIfHEaAEsiMw8+TNcX4A1hETJj8nIoF3hEa7qXRiIEKlsQyts4NcZSj2QmgLBOdgmTrBxDYCZ1w253CWzazj1jg38im4BpQZ4JxyzkBHqkCo9AqACxFwFedNojFnL3gUlwTgh5iFWisAQqL28UTcx9USrXRRXAAaIhURjU8EJiAR0FaSrNaC7oUkYj68eZQIqQZgDVySbaAuMSwJW6rlkHMbzuGi1lpx1FprwfC7+yNK0g3OU7GC4ApGnSuArcCXEFihlmB/Cs4VBFbIFYStQDj/Kjs9ScS5e0gizk4VWwMAQU5NRkoAAAAAAAAAAADGAAA0AAD0AQAAVlA4TDEAAAAvxgANEB8w//M//wKBZLTMVg90GKAgktQGHZjAAtLQ31syE9H/CYC/KaM+oQgY9S19AEFOTUZCAAAAAAAAAAAAxgAANAAA9AEAAFZQOEwqAAAAL8YADRAfMP/zP/8CgWS0zFYPdBhAOIFh3VvSgvKSiuj/BOhsEuAKBGwkQU5NRkoAAAAAAAAAAADGAAA0AAD0AQAAVlA4TDEAAAAvxgANEB8w//M//wKBZLTMVg90GKAgktQGHZjAAtLQ31syE9H/CYAvLaM+oQgY9W1vAA==)"
+
 //#endregion
 
 
@@ -2084,18 +2096,18 @@ async function baldeEnterEvent() {
 	if (baldeEarlyScare) {
 		await baldeEnt.talk(
 			"in hindsight i shouldve seen this coming",
-			"i just thought oh shit i should hide in my house before they get to me but obviously you can just get in");
+			"i just thought \"AAAAAAAAAAAAAAAA i should hide in my house before they get to me\" but obviously you can just get in");
 	} else {
 		await baldeEnt.talk(
-			"shit you have powers too",
+			"oh no you have powers too",
 			"i thought like oh they're moving around normally and abiding by the laws of reality so surely i can hide in my house");
 	}
 	await baldeEnt.talk(
 		"anyway uh",
 		"i'm hiding here because like",
-		"uh", "i'm insane", "yknow",
-		"see, sometimes i get an insatiable urge to murder people in grey hoodies",
-		"and.                            yknow",
+		"uh", "...", "i'm insane", "yknow", "see like",
+		"sometimes i get an insatiable urge to murder people in grey hoodies",
+		"and.                                                                        yknow", "yeah",
 		"so like", "uhhhh", "yknow", "like", "if you could just",
 		"like", "uhhhh", "well", "yknow");
 
@@ -2136,30 +2148,40 @@ async function baldeEnterEvent() {
 		"oh", "you got out of the way",
 		"i uh", "i dont have any actual pathfinding");
 	if (stayedInside) {
-		await baldeEnt.talk("well uh, on the plus side", "youre trapped in my house now! you can never get out")
+		await baldeEnt.talk("well uh", "on the plus side", "youre trapped in my house now! you can never get out")
 	} else {
-		await baldeEnt.talk("and you have noclip so you aren't even trapped in my house", "fuck")
+		await baldeEnt.talk("and you have noclip so you aren't even trapped in my house", "amazing")
 	}
 	invAllow();
 	baldeReachedExit = true;
 
 	while (scissorWait || puterWait) await timer(200);
 
-	while (curPosVal !== 1) await timer(200);
+	while (!baldeCaught && curPosVal !== 1) {
+		if (theBox.style.display === "none" && +Math.random().toFixed(8) == 0.14211212) await baldeEnt.talk("are you bored yet?")
+		await timer(200);
+	}
 
 	if (baldeCaught) return;
 
-	if (stayedInside) await baldeEnt.talk("...wait fuck stop noclipping");
+	if (stayedInside) await baldeEnt.talk("...wait no stop noclipping i forgot you could do that thats not allowed");
 
 	let hasClipped = false;
 	while (!baldeCaught && player.x !== 0 && player.y !== 0 && player.x !== 15 && player.y !== 11) {
 		if (!noclip && !hasClipped) {
 			while (!canMove) await timer(100);
 			await baldeEnt.talk(
-				"...wait you actually stopped noclipping", "i gotta be real like. i can't do anything.",
-				`like, you've broken into my house, ${scissorsGot ? "taken my fuckin safety scissors, " : ""}and avoided my attempts to kill you, and now i'm stuck here in my doorway until you leave`,
-				"so like. you can just go. i fully do not care anymore. either walk into me and let me kill you, or get the fuck out of my house please");
+				"...wait you actually stopped noclipping", "i mean", "i appreciate finally being taken seriously", "but uh", "i gotta be real like", "i can't do anything",
+				`like, you've broken into my house, ${scissorsGot ? "stolen my safety scissors, " : ""}and avoided my attempts to kill you, and now i'm stuck here in my doorway until you leave`,
+				"so like",
+				"you can just go",
+				"i fully do not care anymore",
+				"either walk into me and let me kill you, or please just, get out of my house",
+				"please");
 			hasClipped = true;
+		}
+		if (hasClipped && theBox.style.display === "none" && +Math.random().toFixed(8) == 0.14211212) {
+			await baldeEnt.talk("just waiting", "you can leave whenever you feel like it", "i'd really like if you did", "sooner than later probably")
 		}
 		await timer(50);
 	}
@@ -2205,7 +2227,7 @@ async function scissorEvent() {
 	if (curPosVal !== scissorEnt.val) return;
 	scissors.add();
 	await speech("You pick up the Safety Scissors and put them in your inventory.");
-	await baldeEnt.talk("what the fuck man why are you stealing my safety scissors right in front of me you cant just break into peoples houses and steal their safety scissors");
+	await baldeEnt.talk("what the heck man why are you stealing my safety scissors right in front of me you cant just break into peoples houses and steal their safety scissors");
 	await scissorEnt.hide();
 	scissorsGot = true
 	toPreload.push(...[
@@ -2574,7 +2596,7 @@ async function angryDefend() {
 		angryAction2 = "defend";
 		await speech("You continue holding the same flawless defense stance.");
 		speechSet("Angry Man");
-		await speech("GO FUCK YOURSELF AND YOUR STUPID ASS STANCE LOOK AT YOUR STUPID ASS STANDING LIKE THAT OOOOO LOOK AT ME IM SO COOL I KNOW HOW TO STAND FUCK YOU");
+		await speech("YKNOW WHAT FUCK YOUR STUPID ASS STANCE LOOK AT YOU STANDING LIKE OOOOO LOOK AT ME IM SO COOL I KNOW HOW TO STAND FUCK YOU");
 		await speechBlank("The Angry Man gets annoyed and leaves!", 700);
 		angryDie();
 		return;
@@ -3160,7 +3182,7 @@ async function grinchEvent() {
 	if (grinchViolations === 3) {
 		await grinchEnt.talk(
 			"Yknow what, fuck this.",
-			"I had a whole ass monologue planned and everything.",
+			"I had a whole monologue planned and everything.",
 			"But now I'm just uncomfortable.");
 		if (benCount >= 3) {
 			await grinchEnt.talk(
@@ -3206,7 +3228,7 @@ async function grinchEvent() {
 		await grinchEnt.talk("Dude, personal space!");
 	}
 	if (grinchViolations === 1) {
-		await grinchEnt.talk("You don't listen for shit, yknow that?!");
+		await grinchEnt.talk("You're a horrible listener, yknow that?!");
 	}
 	if (grinchViolations === 2) {
 		await grinchEnt.talk("STAND IN THE FUCKING CIRCLE MAN!!!!!!!");
@@ -3404,7 +3426,7 @@ function calcKarmaScore() {
 
 	if (grinchViolations === 2) {
 		karma(-1);
-		listNeg.push("just now, you kept getting all up in my space");
+		listNeg.push("just now, you kept invading my space");
 	}
 	if (grinchViolations === 3) {
 		karma(-2);
@@ -3412,7 +3434,7 @@ function calcKarmaScore() {
 	}
 	if (grinchViolations === 4) {
 		karma(-3);
-		listNeg.push("to top it all off, you were bein a fuckin creep all up in my face just now");
+		listNeg.push("to top it all off, you were being a creep in my face just now");
 	}
 
 	// tiebreakers
@@ -3501,7 +3523,7 @@ async function grinchBegin() {
 	musicSting();
 	await grinchEnt.talk("Red Grinch!");
 
-	choiceShow([["oh fuck", endOhFuck], ["Who?", endWho]]);
+	choiceShow([["oh no", endOhNo], ["Who?", endWho]]);
 }
 
 async function musicSting() {
@@ -3510,7 +3532,7 @@ async function musicSting() {
 		musPlay("suspense.ogg", 0.5, defSlowFade);
 	}
 }
-async function endOhFuck() {
+async function endOhNo() {
 	await speechBlankChar(grinchEnt, "Wait wh-", 200);
 	await speechAdd(" I mean-", 200);
 	await speechAdd(" Haha! Yes! Fear me!");
@@ -3545,7 +3567,7 @@ async function genericRant() {
 		await grinchEnt.talk(`Historically your thinking has been like ${intelligence} good so can you stop thinking please!`);
 	} else if (intelligence <= 0) {
 		await grinchEnt.talk(
-			"That's because you're a fucking idiot!",
+			"That's because you're STUPID!!!!!!!!!!",
 			`You're literally ${intelligence} smart!!!`,
 			"I would know, I've been watching you this whole time!",
 			"Where are my metrics for this????? WHAT A STUPID QUESTION!!! SEE, ONLY A STUPID PERSON WOULD ASK THAT!!!!");
@@ -3558,7 +3580,7 @@ async function genericRant() {
 	await grinchEnt.talk(`That's right, I've been stalking you the past ${secondsAgo(timeStarted)} seconds!!!!!! And I've used my patented Karma Score technology to analyze how good you are, subtracting points for bad actions and adding points for good actions!!`);
 
 	if (hasInted < 5) {
-		await grinchEnt.talk("...problem is, there's hardly anything to fucking score!");
+		await grinchEnt.talk("...problem is, what the hell am I supposed to score??????");
 		grinchEarlyEnd();
 		return;
 	}
@@ -3630,13 +3652,17 @@ async function genericRant() {
 	await speech("You know what you have to do now.");
 	await speechBlank("You open your inventory one last time, and ponder which trick to treat him with.")
 	await speechAdd(".. wait fuck, that's Halloween.");
-	if (new Date().getMonth() === 9) await speechAdd(".. wait it IS halloween, why are you even playi- oh fuck this just choose an item")
+	if (new Date().getMonth() === 9) await speechAdd(".. wait it IS halloween, why are you even playi- oh whatever just choose an item already")
 	endChoiceNow();
 }
 async function grinchEarlyEnd() {
 	machineShowed = true; musPause();
+	await speechBlankChar(grinchEnt, "Like seriously!!!", 500);
+	await speechAdd(" You", 1000);
+	await speechAdd(" are", 1000);
+	await speechAdd(" boooooooooooooooooooooooooooooooooring!!!");
 	await grinchEnt.talk(
-		"You're boring as shit, dude! You barely even played the game!!",
+		"You barely even played the game!!",
 		`Imagine taking the time to start up this game,${!fast ? " and even watch the intro," : ""} just to slowly walk to the end without interacting with ANYTHING on the map!`,
 		"It's like walking into fucking Disneyland and going \"Let's wait in line for a hot dog and then leave!\"",
 		"YOU JUST CAN'T DO THAT MAN.", "Ugh, whatever.",
@@ -4025,7 +4051,7 @@ async function endingCoin() {
 		"uhhhhhh fuck i thought this would be easy",
 		"ive never actually read a garfield comic before",
 		"WHAT WOULD HE EVEN SAY THERE THIS IS A CHILDRENS COMIC ISNT IT???",
-		"fuck man maybe he says he went on a really good date???");
+		"iunno man maybe he says he went on a really good date???");
 	musPause();
 	playSfx("drumroll.ogg");
 
@@ -4886,7 +4912,7 @@ async function genocideDie() {
 		"you actually picked die?",
 		"uhhhhhhhhhhhh",
 		"ok im ngl i dont actually feel like destroying the universe",
-		"like i said all that shit to sound cool and mysterious and evil",
+		"like i said all that freaky stuff to sound cool and mysterious and evil",
 		"and i thought youd think i was so evil you'd side against me and pick the other one",
 		"but uh. i just enjoy fucking with people and i think it'd be funny to transform you",
 		"so uh.", "bye lol")
@@ -4971,8 +4997,6 @@ function openCredits() { document.body.insertAdjacentHTML("beforeend", `
 	<h1>Credits</h1>
 	<h2>Programming, Design, "Art"</h2>
 	<p><strong>Commenter25</strong> (<a href="https://commenter.cc">commenter.cc</a>)</p>
-	<h2>Primary Playtester, Sanity Advisor, Design</h2>
-	<p><strong>nano</strong> (<a href="https://nano.lgbt">nano.lgbt</a>)</p>
 	<h2>Main Theme</h2>
 	<p><strong>ZERO_1</strong> - "EasyFUZZ"<br>
 		(<a href="https://www.jamendo.com/album/10910/">Guitar Amplex</a>)</p>

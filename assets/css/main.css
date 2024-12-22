@@ -1,4 +1,4 @@
-/*! @license Crazy Chrimble Catastrophy | Copyright (c) 2023 Commenter25 | MIT License */
+/*! @license Crazy Chrimble Catastrophy - v2.3.0 | Copyright (c) 2023 Commenter25 | MIT License */
 /*! @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&dn=expat.txt MIT License */
 
 
@@ -335,12 +335,15 @@ noscript {
 #midload {
 	background: black no-repeat center
 }
-#midload p {
+#midloadText {
 	position: absolute;
 	top: 315px;
 	left: 300px;
 	text-align: left;
 	margin: 0;
+}
+#midloadButton {
+	color: black;
 }
 
 #credits, .warning {
