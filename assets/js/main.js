@@ -1,4 +1,4 @@
-/*! @license Crazy Chrimble Catastrophy v2.3.0 | Copyright (c) 2023 Commenter25 | MIT License */
+/*! @license Crazy Chrimble Catastrophy v2.3.1 | Copyright (c) 2023 Commenter25 | MIT License */
 /* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&dn=expat.txt MIT License */
 /* global timer, fast, loadbutton, errormode, favicon, YAPLload, YAPLloaded, YAPLfailed, debug:writeable, mainLoaded:writeable, music:writeable */
 "use strict";
@@ -2158,7 +2158,7 @@ async function baldeEnterEvent() {
 	while (scissorWait || puterWait) await timer(200);
 
 	while (!baldeCaught && curPosVal !== 1) {
-		if (theBox.style.display === "none" && +Math.random().toFixed(8) == 0.14211212) await baldeEnt.talk("are you bored yet?")
+		if (theBox.style.display === "none" && +Math.random().toFixed(6) == 0.142112) await baldeEnt.talk("are you bored yet?")
 		await timer(200);
 	}
 
@@ -2180,8 +2180,9 @@ async function baldeEnterEvent() {
 				"please");
 			hasClipped = true;
 		}
-		if (hasClipped && theBox.style.display === "none" && +Math.random().toFixed(8) == 0.14211212) {
-			await baldeEnt.talk("just waiting", "you can leave whenever you feel like it", "i'd really like if you did", "sooner than later probably")
+		if (theBox.style.display === "none" && +Math.random().toFixed(6) == 0.142112) {
+			if (!hasClipped) await baldeEnt.talk("quit noclipping get back here you can't do that that's not supposed to happen")
+			if (hasClipped) await baldeEnt.talk("just waiting", "you can leave whenever you feel like it", "i'd really like if you did", "sooner than later probably")
 		}
 		await timer(50);
 	}
@@ -3847,10 +3848,15 @@ async function endingWorms() {
 		"THE POWER OF LOVEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE");
 	musPause();
 	await timer(200);
-	await makeGif("grinch-icon-dissolve.gif")
-	grinchEnt.setImg("grinch-icon-dissolve.gif", false);
+	const grinch = grinchEnt.sprite.style
+	const tag = await makeGif("grinch-icon-dissolve.gif",
+		`position: absolute; top: ${grinch.top}; left: ${grinch.left}; transform: ${grinch.transform}`,
+		mapIcons)
+	grinch.display = "none"
 	await playSfx("noo.ogg");
-	endGame("love ending", "careless_whispers.ogg", "merry romance");
+	await endGame("love ending", "careless_whispers.ogg", "merry romance");
+	grinch.display = ""
+	tag.remove();
 }
 
 // #region Worm Ending
