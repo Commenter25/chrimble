@@ -1,4 +1,4 @@
-/*! @license Yet Another PreLoader v2.0.0 | Copyright (c) 2023 Commenter25 | MIT License */
+/*! @license Yet Another PreLoader v2.1.0 | Copyright (c) 2023 Commenter25 | MIT License */
 /* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&dn=expat.txt MIT License */
 "use strict";
 
@@ -73,9 +73,11 @@ try { return new Promise( (resolve)=> {
 		tag.addEventListener("error", bad, {once: true});
 		switch (tag.tagName) {
 			case "AUDIO": case "VIDEO":
-				tag.addEventListener("canplay", good, {once: true});
+				tag.preload = "auto"
+				tag.addEventListener("canplaythrough", good, {once: true});
 				break;
 			case "IMG":
+				tag.fetchpriority = "low"
 				tag.alt = "";
 				tag.addEventListener("load", good, {once: true});
 				break;

@@ -1,4 +1,4 @@
-/*! @license Crazy Chrimble Catastrophy v2.3.1 | Copyright (c) 2023 Commenter25 | MIT License */
+/*! @license Crazy Chrimble Catastrophy v2.4.0 | Copyright (c) 2023 Commenter25 | MIT License */
 /* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&dn=expat.txt MIT License */
 /* global timer, fast, loadbutton, errormode, favicon, YAPLload, YAPLloaded, YAPLfailed, debug:writeable, mainLoaded:writeable, music:writeable */
 "use strict";
@@ -13,7 +13,7 @@ const loading = document.getElementById("loading");
 loading.insertAdjacentHTML("beforebegin", `
 <main id="container" style="display:none">
 
-	<div id="mapIcons">
+	<div id="mapIcons" style="display: none">
 		<img id="player" src="assets/img/50x50.webp" style="object-position: 0 0" loading="lazy">
 	</div>
 
@@ -267,8 +267,8 @@ async function ebOverlay(img, time) {
 	overlay.style.opacity = "50%";
 	overlay.appendChild(tag)
 	await timer(time);
-	await animate(overlay, 0.3, "linear fadeinfrom");
-	overlay.style.opacity = "100%"
+	await animate(main, 0.3, "linear fadeout");
+	main.style.opacity = "0%"
 	await timer(500);
 	overlay.style.display = "none";
 	overlay.style.opacity = "";
@@ -316,29 +316,21 @@ async function loadingFavicon() {
 // not worth a http req, ppl needing this need those minimized
 const loadBG = "url(data:image/webp;base64,UklGRuQCAABXRUJQVlA4WAoAAAASAAAAxgAANAAAQU5JTQYAAAD/////AABBTk1GygEAAAAAAAAAAMYAADQAAPQBAABWUDhMsQEAAC/GAA0QXzD/8z//SgMAacNscPSdSSYD8I5EouOCMOBAPHzIrW3LkZVrFPKaZEEK8ovyHioOUiCEnwQLVz7jIW949aqqu1cXyoro/wS8xwrXEL8nzv9eHizh0RKO/Mf0Qed0UWutpaMP4tjFWSjt3CDGXDyHCwGAK3EDVAZC0gGkA4gNgo0ABAd0G8E5lzjkx0A+4GLPAGgqJKmMiOJ+bzvRGADM/Oi8vpWpAMEBN1zYbm4dJ+CJ95wAXJlnTgAu9kRA+7EDAxyJmAXaTmAErp4BiIfHEaAEsiMw8+TNcX4A1hETJj8nIoF3hEa7qXRiIEKlsQyts4NcZSj2QmgLBOdgmTrBxDYCZ1w253CWzazj1jg38im4BpQZ4JxyzkBHqkCo9AqACxFwFedNojFnL3gUlwTgh5iFWisAQqL28UTcx9USrXRRXAAaIhURjU8EJiAR0FaSrNaC7oUkYj68eZQIqQZgDVySbaAuMSwJW6rlkHMbzuGi1lpx1FprwfC7+yNK0g3OU7GC4ApGnSuArcCXEFihlmB/Cs4VBFbIFYStQDj/Kjs9ScS5e0gizk4VWwMAQU5NRkoAAAAAAAAAAADGAAA0AAD0AQAAVlA4TDEAAAAvxgANEB8w//M//wKBZLTMVg90GKAgktQGHZjAAtLQ31syE9H/CYC/KaM+oQgY9S19AEFOTUZCAAAAAAAAAAAAxgAANAAA9AEAAFZQOEwqAAAAL8YADRAfMP/zP/8CgWS0zFYPdBhAOIFh3VvSgvKSiuj/BOhsEuAKBGwkQU5NRkoAAAAAAAAAAADGAAA0AAD0AQAAVlA4TDEAAAAvxgANEB8w//M//wKBZLTMVg90GKAgktQGHZjAAtLQ31syE9H/CYAvLaM+oQgY9W1vAA==)"
 
-async function loadingScreen() {
-	if (YAPLloaded >= preloadCount && !preloadWaiting) return;
+let loadStarted, loadTimeout
+function loadingScreenShow(delay = 5000) {
+	loadStarted = new Date().getTime()
+	loadTimeout = setTimeout(()=> {
+		midload.style.backgroundImage = loadBG
+		midloadText.textContent = ""
+		midloadButton.style.display = "none"
+		midload.style.display = ""
+		loadingFavicon()
+	}, delay)
+}
 
-	const loadStarted = new Date().getTime()
-
-	midloadButton.style.display = "none"
-	midload.style.backgroundImage = loadBG
-	midload.style.display = ""
-	loadingFavicon()
-	musPause();
-
-	while ((YAPLloaded < preloadCount || preloadWaiting) && !YAPLfailed) {
-		midloadText.textContent = `${YAPLloaded}/${preloadCount}`
-		await timer(200)
-	}
+async function loadingScreenHide() {
+	clearTimeout(loadTimeout)
 	keepDrawingLoader = false;
-
-	if (YAPLfailed) {
-		midloadText.textContent = "Something has gone horribly wrong!"
-		midload.style.backgroundImage = ""
-		// force game to never continue
-		while (YAPLfailed) await timer(99999999)
-	}
 
 	// make sure the user is here
 	if (document.hidden || (new Date().getTime() - loadStarted) > 12000) await new Promise( (res)=> {
@@ -348,8 +340,30 @@ async function loadingScreen() {
 		midloadButton.style.display = ""
 	});
 
-	musResume()
 	midload.style.display = "none"
+}
+
+async function loadingScreen(delay) {
+	if (YAPLloaded >= preloadCount && !preloadWaiting) return;
+
+	loadingScreenShow(delay)
+	musPause();
+
+	while ((YAPLloaded < preloadCount || preloadWaiting) && !YAPLfailed) {
+		midloadText.textContent = `${YAPLloaded}/${preloadCount}`
+		await timer(200)
+	}
+
+	if (YAPLfailed) {
+		midloadText.textContent = "Something has gone horribly wrong!"
+		midload.style.backgroundImage = ""
+		// force game to never continue
+		while (YAPLfailed) await timer(99999999)
+	}
+
+	await loadingScreenHide()
+
+	musResume()
 }
 
 //#endregion
@@ -367,11 +381,17 @@ const ebAssets = [
 	"mus/eb/winmus.ogg"
 ];
 
+
+function makeSfx(snd) {
+	const sfx = new Audio(`assets/snd/${snd}`);
+	sfx.volume = 1 * userVol;
+	return sfx
+}
+
 let sfx = new Audio();
-function playSfx(snd) {
+function playSfx(snd, sfxObj) {
 	return new Promise((res)=>{
-		sfx = new Audio(`assets/snd/${snd}`);
-		sfx.volume = 1 * userVol;
+		sfx = sfxObj || makeSfx(snd)
 		sfx.play();
 		sfx.addEventListener("ended", res, {once: true});
 	});
@@ -379,7 +399,7 @@ function playSfx(snd) {
 
 // see localonly.js for music system for file:
 
-let musPlay, musCurrent, musCurVol;
+let musPlay, musCurrent, musCurVol, musTime;
 if (window.location.protocol !== "file:") {
 	musPlay = async (snd, vol = defVol, fade = defFade, intro = false, introvol = false) => {
 		// do nothing if this song is already playing
@@ -414,6 +434,8 @@ if (window.location.protocol !== "file:") {
 
 		return music.getTrack().endsWith(isthisit)
 	}
+
+	musTime =()=> music.getPosition() / 1000
 }
 
 const defVol = 0.3, defFade = 0.125, defSlowFade = 0.0125
@@ -1321,6 +1343,8 @@ function attachBox(obj) {
 }
 let foundNoclip = false;
 async function noclipAlert(text, length = 500, obj = player) {
+	playSfx("damage.ogg");
+
 	if (obj === player) {
 		// it's weird to preload it here, but players *may* not catch on to the balde puzzle just by seeing it
 		// but if they've found this, they'll almost 100% go to his house, so this is the best spot imo
@@ -1336,9 +1360,6 @@ async function noclipAlert(text, length = 500, obj = player) {
 		}
 		foundNoclip = true
 	}
-
-
-	playSfx("damage.ogg");
 
 	const oldBox = document.getElementById(`${obj.name}box`)
 	if (oldBox) oldBox.remove();
@@ -1460,28 +1481,37 @@ async function startVerify() {
 	buttonRamble();
 }
 async function buttonRamble() {
-	loadbutton.textContent = "You don't haaaaave to.";
-	await timer(3000);
-	loadbutton.textContent = "It's just an option.";
-	await timer(3000);
-	loadbutton.textContent = "Presenting you with various choices.";
-	await timer(3000);
-	loadbutton.textContent = "Really, you can just quit if you want.";
-	await timer(3000);
-	loadbutton.textContent = "It's not like there's anything interesting in here.";
-	await timer(3000);
-	loadbutton.textContent = "It's just, if you felt like it, you could...";
-	await timer(3000);
+	async function rambles(...texts) {
+		for (const text in texts) {
+			if (loadbutton.disabled) return
+			loadbutton.textContent = text;
+			await timer(3000);
+		}
+	}
+
+	await rambles(
+		"You don't haaaaave to.",
+		"It's just an option.",
+		"Presenting you with various choices.",
+		"Really, you can just quit if you want.",
+		"It's not like there's anything interesting in here.",
+		"It's just, if you felt like it, you could..."
+	)
+	if (loadbutton.disabled) return
 	loadbutton.onclick = startVerify;
 	loadbutton.textContent = "Start Game";
 }
 
 async function soundTest() {
-	loading.style.display = "none";
-	mapIcons.style.display = "none";
+	loadbutton.textContent = "Starting..."
+	loadbutton.disabled = true
 
 	musPlay("ecards.ogg", 1, false)
 
+	// wait until the song starts actually playing
+	while (musTime() <= 0) await timer(50)
+
+	loading.style.display = "none";
 	overlay.insertAdjacentHTML("afterend",`
 	<div id="soundtest" class="overlay">
 	<p>please adjust your volume until this is at a comfortable volume,<br>
@@ -1491,15 +1521,21 @@ async function soundTest() {
 
 	<button disabled="true">I adjusted my volume! (enter)</button>
 	</div>`)
-	const soundtest = document.getElementById("soundtest");
 
+	const soundtest = document.getElementById("soundtest");
 	const volSlider = soundtest.querySelector("input")
 	volSlider.addEventListener("input", ({target})=>{ music.volume = target.value })
 	volSlider.value = userVol
 	volSlider.focus({focusVisible: true});
 
+	// if we preload immediately, it stops playing the song under extreme conditions
+	// so while we lose precious seconds this way i'd rather the sound test fuckin works
+	// at least long enough that you could get an idea of where to set it
+	while (musTime() <= 2) await timer(50)
+	document.dispatchEvent(new Event("introStarting"))
+	await timer(4000)
+
 	const soundbutton = soundtest.querySelector("button")
-	await timer(5000)
 	soundbutton.disabled = false
 	soundbutton.onclick =()=>{
 		userVol = volSlider.value;
@@ -1520,6 +1556,26 @@ async function soundTest() {
 let timeSinceImportance;
 const momObj = new talkObj("Your Mother", [140, 72], "mom.webp")
 async function intro() {
+	// start trying to load these now
+	const doorKick = makeSfx("doorkick.ogg")
+	const doorClose = makeSfx("doorclose.ogg")
+
+	const introvid = document.createElement("video");
+	introvid.preload = "auto"
+	introvid.src = `assets/vid/intro.webm`;
+	introvid.id = "introvid";
+	introvid.controls = false
+	introvid.volume = userVol;
+
+	doorKick.addEventListener("canplaythrough", ()=>{}, {once: true})
+	doorClose.addEventListener("canplaythrough", ()=>{}, {once: true})
+	introvid.addEventListener("canplaythrough", ()=>{}, {once: true})
+
+	// these are by far the largest files, and are most likely to cause the door sfx
+	// and even intro video to hang in extreme conditions, at least in firefox.
+	// so we'll just wait until here and pray nothing fucks up
+	preload(["mus/fuzz-intro.ogg", "mus/fuzz.ogg"])
+
 	musPause(false);
 
 	// very unfortunate hack to prevent flashing from image decoding (i dont like canvas)
@@ -1574,14 +1630,15 @@ async function intro() {
 	await speech("But then, all of the sudden....");
 	bg("door");
 	await timer(2000);
-	playSfx("doorkick.ogg");
+	playSfx(null, doorKick);
 	bg("bart"); timeSinceImportance = new Date().getTime();
 	await timer(2000);
 	speechSet("Bartholomew");
 	await speech("The Bad is coming.");
 	speechSet();
-	playSfx("doorclose.ogg");
+	playSfx(null, doorClose);
 	await timer(1300);
+
 	bg("door");
 	await timer(2000);
 
@@ -1608,22 +1665,47 @@ async function intro() {
 	boxClose();
 	main.removeChild(tag);
 
-	const introvid = document.createElement("video");
-	introvid.src = `assets/vid/intro.webm`;
-	introvid.id = "endvid";
-	introvid.volume = userVol;
-
 	overlay.appendChild(introvid);
 	overlay.style.display = "";
 	overlay.style.opacity = "";
 
-	await new Promise(res=>{ introvid.addEventListener("canplaythrough", res, {once: true}) })
-	introvid.play();
-	await timer((introvid.duration * 1000) - 1600);
+	function fuckingGiveUp() {
+		// the browser is, for whatever reason, stopping us
+		// fucking. just. show the controls. whatever
+		// this appears to be a consistent issue and i dont know how many people
+		// just never told me about it and im genuinely mad it was there for so long
+		introvid.controls = true
+
+		// try to hide most of the controls so the user won't break it
+		const controlCover = document.createElement("div")
+		controlCover.style.cssText = `
+			background: black;
+			width: 755px; height: 27px;
+			position: absolute; bottom: 0; right: 0;`
+		overlay.appendChild(controlCover)
+	}
+
+	if (introvid.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) {
+		loadingScreenShow()
+		try { await new Promise((res, rej)=>{
+			introvid.addEventListener("canplaythrough", res, {once: true})
+			setTimeout(rej, 30000) // assume the worst after 30 seconds
+		}) } catch (err) { fuckingGiveUp() }
+		await loadingScreenHide()
+	}
+
+	const playPromise = introvid.play()
+	if (playPromise !== undefined) playPromise.catch(()=>{ fuckingGiveUp() })
+	while (introvid.currentTime <= 0) await timer(50)
+
+	const finalSting = (introvid.duration) - 1.6
+	await timer(finalSting * 1000);
+	while (introvid.currentTime < (finalSting - 0.1)) await timer(50)
+
 	main.style.imageRendering = ""
 	overlay.style.display = "none";
 
-	await loadingScreen()
+	await loadingScreen(0)
 
 	await speech("You walk outside your house, and realize that the only way you can move around is by selecting the spot in front of you that you want to go.");
 
@@ -2479,18 +2561,6 @@ async function chestEvent() {
 // #region Angry Man
 let angryFighter, angryAction = false, angryAction2 = false, angryDead = false, angryRan = false, ebLoaded = false;
 async function angryEvent() {
-	preload([
-		"img/earthbound.webp",
-		"snd/eb/equip.ogg",
-		"snd/eb/item.ogg",
-		"snd/eb/miss.ogg",
-		"snd/eb/present.ogg",
-		"snd/eb/smash.ogg",
-		"snd/eb/win.ogg",
-		"mus/eb/weakop.ogg",
-		"mus/eb/level.ogg",
-		"snd/stance.ogg"
-	])
 	if (!ebLoaded) {
 		toPreload.push(...ebAssets);
 		ebLoaded = true;
@@ -2509,15 +2579,32 @@ async function angryEvent() {
 		await angryEnt.talk("I HATE PEOPLE");
 	}
 
+	const theList = [
+		"img/earthbound.webp",
+		"snd/eb/equip.ogg",
+		"snd/eb/item.ogg",
+		"snd/eb/miss.ogg",
+		"snd/eb/present.ogg",
+		"snd/eb/smash.ogg",
+		"snd/eb/win.ogg",
+		"mus/eb/weakop.ogg",
+		"mus/eb/level.ogg",
+		"snd/stance.ogg"
+	]
+
 	if (fast) {
+		preload(theList)
 		await animate(main, 0.5, "linear fadeout");
 		main.style.display = "none";
 	} else {
 		playSfx("eb/enterbattle.ogg");
-		await ebOverlay("transition.png", 3000);
+		ebOverlay("transition.png", 3000);
+		await timer(1000)
+		preload(theList)
+		await timer(2500)
 	}
 
-	await loadingScreen();
+	await loadingScreen(0);
 
 	main.style.background = "url('assets/img/earthbound.webp') no-repeat 0 130px";
 	mapIcons.style.display = "none";
@@ -2530,6 +2617,7 @@ async function angryEvent() {
 	musPlay("eb/weakop.ogg", 1, false);
 	main.style.display = "";
 	animate(main, 0.5, "linear fadein");
+	main.style.opacity = ""
 	await speechBlank("The Angry Man approaches!", 1000);
 	angryChoices();
 }
@@ -2909,7 +2997,7 @@ async function orangeCarEvent() {
 		}
 	}
 
-	preload([
+	const theList = [
 		"img/map2.png",
 		"snd/marioworld.ogg",
 		"snd/aa-courtrecord.ogg",
@@ -2919,8 +3007,10 @@ async function orangeCarEvent() {
 		"img/grinch-phone.webp",
 		"snd/buildup.ogg",
 		"snd/hunterdown.ogg",
-		"mus/innsbruck.ogg"
-	])
+		"mus/innsbruck.ogg",
+		"img/mom.webp"
+	]
+	if (fast) preload(theList)
 
 	if (hasItem("Ford")) {
 		fordSprite.style.top = pxify(1);
@@ -2932,7 +3022,10 @@ async function orangeCarEvent() {
 	if (!fast) {
 		orangeCarEnt.sprite.style.transition = "";
 		playSfx("carcrash.mp3");
-		await animate(orangeCarEnt.sprite, 6, "linear slideleft");
+		animate(orangeCarEnt.sprite, 6, "linear slideleft");
+		await timer(2000)
+		preload(theList)
+		await timer(4000)
 		orangeCarEnt.hide()
 	}
 
@@ -3011,8 +3104,6 @@ async function levelTwo() {
 		"mus/blue.mp3"
 	])
 
-	preload(toPreload);
-
 	matrix = [
 		[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
 		[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
@@ -3081,10 +3172,15 @@ async function levelTwo() {
 		orangeCarEnt.sprite.style.transition = "";
 		orangeCarEnt.sprite.style.display = "";
 		playSfx("marioworld.ogg");
-		await animate(orangeCarEnt.sprite, 11, "linear carend");
+		animate(orangeCarEnt.sprite, 11, "linear carend");
+		await timer(4000)
+		preload(toPreload);
+		await timer(7000)
 		orangeCarEnt.sprite.style.transform = "rotate(270deg)";
 		await timer(700);
 		orangeCarEnt.hide();
+	} else {
+		preload(toPreload)
 	}
 
 	playerImg.style.display = "";
@@ -3238,7 +3334,6 @@ async function grinchEvent() {
 }
 
 async function destructEvent() {
-
 	await speech(
 		"Behind the machine, you find a self-destruct button.",
 		"You feel like you should make a note of this...");
@@ -3748,7 +3843,8 @@ async function endChoiceNow(remember) {
 
 let endingChoice = false;
 const seenEndings = JSON.parse(localStorage.getItem("seenEndings")) || [];
-const allEndingsSeen = (seenEndings.length >= 12)
+const allEndingsSeen =()=> (seenEndings.length >= 12)
+
 function endChoice(item) {
 	boxClose(); moveStop();
 
@@ -4228,6 +4324,7 @@ async function endingScissors() {
 
 	musPlay("eb/jolly.ogg", 1, false);
 	animate(main, 0.5, "linear fadein");
+	main.style.opacity = ""
 	await speechBlank("You confront the Red Grinch!", 1000);
 	scissorChoices();
 }
@@ -4467,10 +4564,10 @@ async function endGame(ending, music = false, text = "merry ceiling", creepy = f
 	endKarma.textContent = `karma: ${karmaScore}`;
 	endIntel.textContent = `intelligence: ${intelligence}`;
 
-	if (allEndingsSeen) endCreepy.style.opacity = 1
+	if (allEndingsSeen()) endCreepy.style.opacity = 1
 	if (!creepy) {
 		endText.textContent = text;
-		if (allEndingsSeen) {
+		if (allEndingsSeen()) {
 			creepy = (hasItem("Glass of Water")) ? "empty the bottle." : "the bottle."
 		}
 		creepy = (failedsummon) ? "it's time." : creepy
@@ -4553,7 +4650,7 @@ async function endingSpeedrun() {
 	overlay.style.display = "none";
 
 	if (angryDead) {
-		if (allEndingsSeen) {
+		if (allEndingsSeen()) {
 			endingSpeedrunGenocide(); return;
 		}
 
@@ -4649,7 +4746,7 @@ async function endingSpeedrun() {
 
 	await timer(2000)
 
-	if (allEndingsSeen) endCreepy.opacity = 1
+	if (allEndingsSeen()) endCreepy.opacity = 1
 	endCreepy.textContent = "the yellow one too."
 
 	endGameSpeedrun("speedrun ending", "gasgasgas.ogg", "merry acceleration");
@@ -4680,7 +4777,7 @@ function endGameSpeedrun(ending, music = false, text = "merry ceiling") {
 let garfImg;
 async function endingSpeedrunGenocide() {
 	/*
-	it's fairly likely if you're reading this, you haven't gotten this ending.
+	there's a decent chance if you're reading this, you haven't gotten this ending.
 	do me a favor, and do the speedrun ending while killing the angry man, then come back
 	*/
 

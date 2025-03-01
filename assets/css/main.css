@@ -325,11 +325,10 @@ noscript {
 }
 
 #reswarning {
-	display: none;
 	border: 1px solid rgb(255, 255, 255);
 }
 @media (max-width: 799px), (max-height: 599px) {
-	#reswarning { display: grid }
+	#reswarning { display: grid !important }
 }
 
 #midload {

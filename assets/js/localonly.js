@@ -91,7 +91,7 @@ musCurrent =(isthisit)=> {
 	return music.src.endsWith(isthisit)
 }
 
-
+musTime =()=> { return music.currentTime }
 
 
 

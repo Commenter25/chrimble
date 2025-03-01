@@ -1,4 +1,4 @@
-/*! @license Crazy Chrimble Catastrophy - Initialization - v2.3.1 | Copyright (c) 2023 Commenter25 | MIT License */
+/*! @license Crazy Chrimble Catastrophy - Initialization - v2.4.0 | Copyright (c) 2023 Commenter25 | MIT License */
 /* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&dn=expat.txt MIT License */
 /* eslint-disable no-undef */ "use strict"
 
@@ -50,7 +50,7 @@ YAPLtag.insertAdjacentHTML("beforeend", `
 
 function script(i) {
 	const tag = document.createElement('script');
-	tag.src = `assets/js/${i}.js?v231`; tag.async = true;
+	tag.src = `assets/js/${i}.js?v240`; tag.async = true;
 	document.head.appendChild(tag);
 }
 script("main")
@@ -62,12 +62,15 @@ if (window.location.protocol !== "file:") {
 
 const folder = "assets"
 assets.base = [
-"img/speechBox.webp",
-"img/mom.webp"
+"img/speechBox.webp"
 ]
 
 assets.intro = [
 "mus/ecards.ogg",
+"snd/doorclose.ogg",
+"snd/doorkick.ogg",
+"vid/intro.webm",
+"img/mom.webp",
 "img/intro/bart.webp",
 "img/intro/chair.webp",
 "img/intro/christmas.webp",
@@ -78,35 +81,30 @@ assets.intro = [
 "img/intro/player.webp",
 "img/intro/puter.webp",
 "img/intro/time.webp",
-"snd/doorclose.ogg",
-"snd/doorkick.ogg",
-"vid/intro.webm"
 ]
 
 assets.map = [
-"img/map1.png",
-"img/50x50.webp",
-"mus/fuzz-intro.ogg",
-"mus/fuzz.ogg",
-"snd/damage.ogg",
-"snd/dumbvictory.ogg",
-"snd/trapped.ogg",
-"img/aaron.webp",
-"snd/fedex-mmm.mp3",
-"snd/fedex.mp3",
-"snd/mysterygo.ogg",
-"img/ben.webp",
-"snd/coin.ogg",
-"img/store-screen.png",
-"img/transition.png",
 "snd/eb/enterbattle.ogg",
 "snd/batman.ogg",
 "snd/carcrash.mp3",
-"snd/takeoff.ogg"
+"snd/takeoff.ogg",
+"snd/damage.ogg",
+"snd/dumbvictory.ogg",
+"snd/trapped.ogg",
+"snd/fedex-mmm.mp3",
+"snd/fedex.mp3",
+"snd/mysterygo.ogg",
+"snd/coin.ogg",
+"img/map1.png",
+"img/50x50.webp",
+"img/aaron.webp",
+"img/ben.webp",
+"img/store-screen.png",
+"img/transition.png",
 ]
 
 const intro = !fast && !params.has('nointro') && !params.has('novid')
-let initial = intro ? assets.intro : assets.map;
+let initial = intro ? assets.intro : assets.map.concat(["mus/fuzz-intro.ogg", "mus/fuzz.ogg"]);
 initial = assets.base.concat(initial)
 
 if (localStorageBool("summoned")) initial = [
@@ -118,8 +116,15 @@ if (localStorageBool("summoned")) initial = [
 "mus/ultimatum.ogg"
 ]
 
+let warningAdded = false
 function incr() {
 	loadbutton.textContent = `Loading... ${YAPLloaded}/${initial.length}`
+	if (!warningAdded && (new Date().getTime() - initLoadStarted) > 8000) {
+		warningAdded = true
+		loading.insertAdjacentHTML("beforeend", `
+			<p>if you have a slow connection, you can avoid waits and weird bugs if you <a href="https://github.com/Commenter25/chrimble">download the game</a> directly!</p>
+		`)
+	}
 }
 
 function fail() {
@@ -141,12 +146,13 @@ async function done() {
 	loadbutton.disabled = false;
 	loadbutton.focus({focusVisible: true});
 
-	if (intro) loadbutton.addEventListener("click", ()=>{
+	if (intro) document.addEventListener("introStarting", ()=>{
 		YAPLload(folder, assets.map)
 		preloadCount = assets.map.length
 	}, {once: true})
 }
 
 YAPLload(folder, initial, done, incr, fail, fail)
+const initLoadStarted = new Date().getTime()
 
 }, {once: true})/* @license-end */
