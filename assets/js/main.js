@@ -1,4 +1,4 @@
-/*! @license Crazy Chrimble Catastrophy v2.4.1 | Copyright (c) 2023 Commenter25 | MIT License */
+/*! @license Crazy Chrimble Catastrophy v2.4.2 | Copyright (c) 2023 Commenter25 | MIT License */
 /* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&dn=expat.txt MIT License */
 /* global timer, fast, loadbutton, errormode, favicon, YAPLload, YAPLloaded, YAPLfailed, debug:writeable, mainLoaded:writeable, music:writeable */
 "use strict";
@@ -1533,7 +1533,7 @@ async function soundTest() {
 	// at least long enough that you could get an idea of where to set it
 	while (musTime() <= 2) await timer(50)
 	document.dispatchEvent(new Event("introStarting"))
-	await timer(4000)
+	await timer(3000)
 
 	const soundbutton = soundtest.querySelector("button")
 	soundbutton.disabled = false
@@ -2870,6 +2870,7 @@ async function carEvent() {
 			if (int === carEvent) continue; // obviously
 			if (int === houseEvent) continue; // just an easter egg
 			if (int === benEvent && benCount >= 3) continue; // ben has been caught
+			if (int === baldeRun) continue; // choosing to leave balde alone
 			if (int === angryEvent && angryAction2 === "bagel") continue; // happy man
 			intsLeft++;
 		}
@@ -2877,12 +2878,12 @@ async function carEvent() {
 
 		if (intsLeft > 4) {
 			await speech("It feels pretty early to leave, doesn't it?")
-		} else if (!baldeEntered) {
+		} else if (baldeScared && !baldeEntered) {
 			await speech(
 				"You could leave, though you still feel like you could reach that house...",
 				"Perhaps you could copy what he did to get into the void?")
 		} else if (intsLeft !== 0) {
-			await speech("You could leave, though there's still some things to do out here.")
+			await speech("You could leave, though there's still a few things you could do out here.")
 		} else {
 			await speech("You feel confident there's nothing left to do before you leave.")
 		}
@@ -4667,18 +4668,20 @@ async function endingSpeedrun() {
 			sfx.volume = 1 * userVol;
 			sfx.play();
 			explosions.push(sfx);
-			await makeExplosion();
 			await timer(200);
 		}
 
-		for (let i = 0; i < 10; i++) {
-			await explode();
-		}
+		overlay.style.display = ""
+		makeExplosion()
+		for (let i = 0; i < 5; i++) { await explode() }
+		makeExplosion()
+		for (let i = 0; i < 5; i++) { await explode() }
 
 		sfx.pause(); explosions.forEach(el => {el.pause(); el.remove()});
 		music.pause();
 		main.style.filter = ""
 		main.style.animation = ""
+		overlay.style.display = "none"
 
 		creepyMode();
 
