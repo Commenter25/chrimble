@@ -1,4 +1,4 @@
-/*! @license Crazy Chrimble Catastrophy - Initialization - v2.4.2 | Copyright (c) 2023 Commenter25 | MIT License */
+/*! @license Crazy Chrimble Catastrophy - Initialization - v2.5.0 | Copyright (c) 2023 Commenter25 | MIT License */
 /* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&dn=expat.txt MIT License */
 /* eslint-disable no-undef */ "use strict"
 
@@ -50,7 +50,7 @@ YAPLtag.insertAdjacentHTML("beforeend", `
 
 function script(i) {
 	const tag = document.createElement('script');
-	tag.src = `assets/js/${i}.js?v242`; tag.async = true;
+	tag.src = `assets/js/${i}.js?v250`; tag.async = true;
 	document.head.appendChild(tag);
 }
 script("main")

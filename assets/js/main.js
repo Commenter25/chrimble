@@ -1,4 +1,4 @@
-/*! @license Crazy Chrimble Catastrophy v2.4.2 | Copyright (c) 2023 Commenter25 | MIT License */
+/*! @license Crazy Chrimble Catastrophy v2.5.0 | Copyright (c) 2023 Commenter25 | MIT License */
 /* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&dn=expat.txt MIT License */
 /* global timer, fast, loadbutton, errormode, favicon, YAPLload, YAPLloaded, YAPLfailed, debug:writeable, mainLoaded:writeable, music:writeable */
 "use strict";
@@ -457,9 +457,9 @@ async function musVolume(vol, fade = defFade) {
 		await timer(50);
 	}
 }
-let oldVol = userVol
+let oldVol = 1
 async function musPause(fade = defFade) {
-	oldVol = music.volume;
+	oldVol = musCurVol;
 	if (fade) {
 		await musVolume(0, fade);
 	} else {
@@ -467,12 +467,12 @@ async function musPause(fade = defFade) {
 	}
 	music.pause();
 }
-async function musResume(vol = oldVol, fade = defFade) {
+async function musResume(fade = defFade) {
 	music.play();
 	if (fade) {
 		await musVolume(vol, fade)
 	} else {
-		music.volume = vol * userVol
+		music.volume = oldVol * userVol
 	}
 }
 
@@ -1484,7 +1484,7 @@ async function buttonRamble() {
 	async function rambles(...texts) {
 		for (const text in texts) {
 			if (loadbutton.disabled) return
-			loadbutton.textContent = text;
+			loadbutton.textContent = texts[text];
 			await timer(3000);
 		}
 	}
@@ -1517,7 +1517,7 @@ async function soundTest() {
 	<p>please adjust your volume until this is at a comfortable volume,<br>
 	   if very slightly quiet, like you were casually listening to this song.</p>
 
-	<input type="range" min="0.01" max="1" step="0.01" style="margin-bottom: 10px;"/>
+	<input type="range" min="0.001" max="1" step="0.01" style="margin-bottom: 10px;"/>
 
 	<button disabled="true">I adjusted my volume! (enter)</button>
 	</div>`)
@@ -2246,7 +2246,7 @@ async function baldeEnterEvent() {
 
 	if (baldeCaught) return;
 
-	if (stayedInside) await baldeEnt.talk("...wait no stop noclipping i forgot you could do that thats not allowed");
+	if (stayedInside) await baldeEnt.talk("...wait no stop noclipping");
 
 	let hasClipped = false;
 	while (!baldeCaught && player.x !== 0 && player.y !== 0 && player.x !== 15 && player.y !== 11) {
@@ -2258,8 +2258,7 @@ async function baldeEnterEvent() {
 				"so like",
 				"you can just go",
 				"i fully do not care anymore",
-				"either walk into me and let me kill you, or please just, get out of my house",
-				"please");
+				"either walk into me and let me kill you, or get OUT of my house please");
 			hasClipped = true;
 		}
 		if (theBox.style.display === "none" && +Math.random().toFixed(6) == 0.142112) {
@@ -2942,7 +2941,7 @@ async function redCarEvent() {
 async function redFakeout() {
 	loading.style.display = "none";
 	main.style.display = "";
-	musResume(oldVol, false)
+	musResume(false)
 	await speech(
 		"Luckily, you had your \"Send Me Home When I'm Eaten By A Sentient Red Car\" device.",
 		"It's a good thing that random guy in the street last week sold it to you!");
@@ -3524,7 +3523,7 @@ function calcKarmaScore() {
 
 	if (grinchViolations === 2) {
 		karma(-1);
-		listNeg.push("just now, you kept invading my space");
+		listNeg.push("just now, you kept getting all up in my space");
 	}
 	if (grinchViolations === 3) {
 		karma(-2);
@@ -3532,7 +3531,7 @@ function calcKarmaScore() {
 	}
 	if (grinchViolations === 4) {
 		karma(-3);
-		listNeg.push("to top it all off, you were being a creep in my face just now");
+		listNeg.push("to top it all off, you were bein a fuckin creep all up in my face just now");
 	}
 
 	// tiebreakers
@@ -3815,6 +3814,7 @@ async function endChoiceNow(remember) {
 	if (endingChoice === "bottle") { karma(1); }
 	if (endingChoice === "bash") { karma(1); }
 	endingChoice = false;
+	firstTimeSeeingEnding = false;
 	needsReplayWarning = true;
 
 	// reset music
@@ -3844,6 +3844,7 @@ async function endChoiceNow(remember) {
 }
 
 let endingChoice = false;
+let firstTimeSeeingEnding = false;
 const seenEndings = JSON.parse(localStorage.getItem("seenEndings")) || [];
 const allEndingsSeen =()=> (seenEndings.length >= 12)
 
@@ -3868,6 +3869,7 @@ function endChoice(item) {
 
 	// some above will return to prevent adding here
 	if (!seenEndings.includes(item)) {
+		firstTimeSeeingEnding = true
 		seenEndings.push(item)
 		localStorage.setItem("seenEndings", JSON.stringify(seenEndings))
 	}
@@ -4007,6 +4009,7 @@ async function wormGiven() {
 }
 async function wormRefused() {
 	endingChoice = "worm";
+	firstTimeSeeingEnding = true;
 	karma(-1);
 	grinchEnt.setTalkImg("grinch");
 	await grinchEnt.talk(
@@ -4169,7 +4172,7 @@ async function endingCoin() {
 	`${mushy} width: 700px; height: 208px; object-fit: none; object-position: 0 -208px; position: absolute; inset: 50px;`, mapIcons);
 	await animate(comic2, 1, "linear fadein");
 	mapIcons.removeChild(comic);
-	await timer(1000);
+	await timer(3000);
 
 	const real = makeImg("real.png", `position: absolute`);
 	playSfx("ding.ogg");
@@ -4407,6 +4410,7 @@ async function scissorBad(action = false) {
 
 	await scissorEnd();
 
+	if (!seenEndings.includes("Safety Scissors")) firstTimeSeeingEnding = true
 	endingBad();
 }
 async function scissorEnd() {
@@ -4421,9 +4425,10 @@ async function scissorEnd() {
 //#endregion
 
 // #region Bad Ending
+let timesSeenBadBefore = localStorage.getItem("timesSeenBadBefore") ?? 0
 let hasSeenBad;
 async function endingBad() {
-	if (fast) {
+	if (fast && timesSeenBadBefore >= 2 && !firstTimeSeeingEnding) {
 		await speech("This will play the bad end cutscene, would you like to see it?");
 		choiceShow([["See the pretty lazor", endingBadCutsceneSlow], ["Make it quick", endingBadCutsceneFast], ["Let me choose again", endChoiceNow]]);
 		return;
@@ -4431,9 +4436,18 @@ async function endingBad() {
 
 	endingBadCutscene();
 }
-async function endingBadCutscene(instabad = "normal") {
-	if (instabad === "no") hasSeenBad = false;
-	if (instabad === "yes") hasSeenBad = true;
+async function endingBadCutscene(instabad = undefined) {
+	switch (instabad) {
+		case "yes":
+			hasSeenBad = true
+		case "no":
+			hasSeenBad = false
+		default:
+			hasSeenBad = (timesSeenBadBefore !== 0)
+	}
+
+	timesSeenBadBefore++
+	localStorage.setItem("timesSeenBadBefore", timesSeenBadBefore)
 
 	boxClose(); musPause(); moveStop();
 	if (!hasSeenBad) await timer(500);
